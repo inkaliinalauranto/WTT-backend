@@ -161,9 +161,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `db`.`test`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `db`.`shift_statuses` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NOT NULL,
+CREATE TABLE IF NOT EXISTS `db`.`test` (
+  `id` INT NOT NULL,
+  `name` VARCHAR(45) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
