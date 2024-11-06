@@ -1,9 +1,10 @@
-fastapi
+fastapi[standard]==0.115.4
 uvicorn[standard]
 mysql-connector-python
 sqlalchemy
 python-dotenv
 pydantic
+pymysql
 
 pyopenssl
 python-multipart
