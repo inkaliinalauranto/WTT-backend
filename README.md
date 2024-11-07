@@ -24,4 +24,9 @@ python -m pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+build docker:
+docker compose up --build
 
+mene osoitteeseen localhost:FASTAPI_PORT 
+
+tee testi kysely tietokantaan!
