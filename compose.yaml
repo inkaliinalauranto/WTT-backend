@@ -11,32 +11,34 @@ services:
   db:
     image: mysql:8.0
     restart: always
+    env_file: .env
     environment:
-      MYSQL_DATABASE: db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: salasana
-      MYSQL_RANDOM_ROOT_PASSWORD: test
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: ${MYSQL_RANDOM_ROOT_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
-      - 3036:3036
+      - ${MYSQL_PORT}:3036
   fastapi:
     build:
       context: .
+    env_file: .env
     environment:
-      DB_HOST: db
-      DB_USER: user
-      DB_PASSWORD: salasana
-      DB_NAME: db
+      DB_HOST: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE_NAME}
     depends_on:
       - db
     ports:
-      - 8080:80
+      - ${FASTAPI_PORT}:80
   phpmyadmin:
     image: phpmyadmin
     restart: always
     ports:
-      - 8081:80
+      - ${PHPMYADMIN_PORT}:80
     environment:
       - PMA_ARBITRARY=1
   

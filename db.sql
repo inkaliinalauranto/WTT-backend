@@ -163,7 +163,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `db`.`test` (
   `id` INT NOT NULL,
-  `name` VARCHAR(45) NULL,
+  `name` VARCHAR(255) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
