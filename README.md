@@ -27,10 +27,6 @@ uvicorn main:app --reload
 build docker:
 docker compose up --build
 
-luo tietokanta Phpmyadminissa pohjana db.sql
-
-syötä test tauluun uusi rivi
-
-mene osoitteeseen localhost:8080/test tai localhost:8080/docs
+mene osoitteeseen localhost:FASTAPI_PORT 
 
 tee testi kysely tietokantaan!
