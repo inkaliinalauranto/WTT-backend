@@ -13,7 +13,7 @@ app.include_router(test.router)
 
 
 # :D
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def index():
     return """
         <html>

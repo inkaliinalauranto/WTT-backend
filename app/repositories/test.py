@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
-from app import test
+from app import schema
+from app.services.db import DB
 
 
-def get_test(db: Session):
-    return db.query(test.Test).all()
+def get_test(db: DB):
+    return db.query(schema.Test).all()

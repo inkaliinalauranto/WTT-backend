@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class TestSchema(BaseModel):
+class Test(BaseModel):
     id: int
     name: str
 
