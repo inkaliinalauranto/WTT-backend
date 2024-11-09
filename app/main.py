@@ -1,34 +1,46 @@
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+from app.controllers import test
+from app.services.db import Base, engine
 
-from fastapi import Depends, FastAPI
-from sqlalchemy.orm import Session
-
-from app.crud import get_test
-from app.schemas import TestSchema
-from .dp import SessionLocal, Base, engine
-
-
-app = FastAPI()
-
-#Create tables in the database
+# Create tables in the database
 Base.metadata.create_all(bind=engine)
 
-@app.get("/")
+
+# Create routers
+app = FastAPI()
+app.include_router(test.router)
+
+
+# :D
+@app.get("/", response_class=HTMLResponse)
 def index():
-    return "Terve kaikki!"
+    return """
+        <html>
+          <head>
+            <style>
+              .button {
+                background-color: #04AA6D;
+                display: block;
+                border: none;
+                max-width: 500px;
+                font-size: 28px;
+                text-align: center;
+                color: #FFFFFF;
+                padding: 20px;
+                transition-duration: 0.4s;
+                text-decoration: none;
+              }
+              .button:hover {
+                background: #03793D;
+              }
+            </style>
+          </head>
+          <body style="align-items: centered">
+            <a class="button" href="/docs">Open Fastapi Swagger UI</a>
+          </body>
+        </html>
+    """
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
-@app.get("/checkconnection")
-async def read_root(db: Session = Depends(get_db)):
-    return {"message": "Connected to MySQL"}
-
-@app.get("/test", response_model=list[TestSchema])
-def read_test(db: Session = Depends(get_db)):
-    test = get_test(db)
-    return test
