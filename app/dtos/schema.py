@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 
 
+# Tänne tulee kaikki datamallit, jotka löytyvät sellaisenaan tietokannasta
+# Näitä malleja kannattaa käyttää kun tekee tietokantaan inserttejä tai updatea.
+
+
 class Test(BaseModel):
     id: int
     name: str

@@ -3,6 +3,11 @@ from sqlalchemy.dialects.mssql import TIMESTAMP
 from sqlalchemy.orm import relationship, declarative_base
 
 
+# Tänne tehdään kirjaimellisesti tietokannan taulut
+# Ne luodaan automaattisesti tietokantaan, jos niitä ei vielä ole luotu
+# main.py tiedostossa suorituvan Base.metadata.create_all(bind=engine) kautta
+
+
 Base = declarative_base()
 
 
