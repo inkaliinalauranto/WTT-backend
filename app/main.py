@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from app.controllers import test
+from app.controllers import test, auth
 from app.db import engine
 from app.models import Base
 
@@ -12,6 +12,7 @@ Base.metadata.create_all(bind=engine)
 # Create routers
 app = FastAPI()
 app.include_router(test.router)
+app.include_router(auth.router)
 
 
 # :D
