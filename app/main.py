@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from app.controllers import test
-from app.services.db import Base, engine
+from app.db import engine
+from app.models import Base
+
 
 # Create tables in the database
 Base.metadata.create_all(bind=engine)
