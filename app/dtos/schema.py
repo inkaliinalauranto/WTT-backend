@@ -10,7 +10,8 @@ class Test(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
 
 
 class User(BaseModel):
@@ -25,7 +26,8 @@ class User(BaseModel):
     team_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
 
 
 class Role(BaseModel):
@@ -33,7 +35,8 @@ class Role(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
 
 
 class Team(BaseModel):
@@ -42,7 +45,8 @@ class Team(BaseModel):
     organization_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
 
 
 class Organization(BaseModel):
@@ -50,4 +54,5 @@ class Organization(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
