@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from app.controllers import test, auth
@@ -5,8 +6,10 @@ from app.db import engine
 from app.models import Base
 
 
-# Create tables in the database
-Base.metadata.create_all(bind=engine)
+# Jos et halua luoda tauluja, ei jätä enviin esim. tyhjä string.
+if os.getenv("CREATE_DB_TABLES") == "true":
+    # Create tables in the database
+    Base.metadata.create_all(bind=engine)
 
 
 # Create routers
@@ -44,6 +47,3 @@ def index():
           </body>
         </html>
     """
-
-
-

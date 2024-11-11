@@ -17,16 +17,17 @@ venv\Scripts\activate
 ```
 5. Asenna riippuvuudet:
 ```
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
-6. Käynnistä sovellus:
+6. Buildaa docker:
 ```
-uvicorn main:app --reload
-```
-
-build docker:
 docker compose up --build
+```
+7. FastApi, PhpMyadmin ja db pyörivät nyt localhostissa asettamissasi porteissa
 
-mene osoitteeseen localhost:FASTAPI_PORT 
+8. Jos haluat luoda taulukot tietokantaan, lisää allaoleva enviin, ja buildaa docker uudestaan.
+```
+CREATE_DB_TABLES="true"
+```
+9. Luo tietokantaan roolille tietueet "employee" ja "manager", sekä yksi organisaatio ja yksi team.
 
-tee testi kysely tietokantaan!
