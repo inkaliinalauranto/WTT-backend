@@ -4,6 +4,7 @@ FROM python:3.10
 
 WORKDIR /code
 
+RUN chmod -R 755 /code
 
 COPY ./requirements.txt /code/requirements.txt
 
