@@ -24,7 +24,7 @@ class AuthService:
     def _authenticate_user(self, credentials: LoginReq):
         # Haetaan user usernamen perusteella, tämä on mahdollista, koska username on uniikki
         user = self.db.execute(
-            text("SELECT * FROM user WHERE username = :username"),
+            text("SELECT * FROM users WHERE username = :username"),
             {"username": credentials.username}
         ).mappings().first()
 
@@ -42,7 +42,7 @@ class AuthService:
         try:
             # Haetaan user access_tokenin perusteella.
             user = self.db.execute(
-                text("SELECT * FROM user WHERE access_jti = :sub"),
+                text("SELECT * FROM users WHERE access_jti = :sub"),
                 {"sub": access_jti}
             ).mappings().first()
 
@@ -82,7 +82,7 @@ class AuthService:
             # Päivitetään access_jti tietokantaan kyseiselle käyttäjälle.
             # Tätä käytetään, kun haetaan sisäänkirjautunut käyttäjä tai halutaan kirjautua ulos
             self.db.execute(
-                text("UPDATE user SET access_jti = :sub WHERE username = :username"),
+                text("UPDATE users SET access_jti = :sub WHERE username = :username"),
                 {"sub": access_jti, "username": credentials.username}
             )
             self.db.commit()
@@ -101,7 +101,7 @@ class AuthService:
     def logout(self, user):
         try:
             self.db.execute(
-                text("UPDATE user SET access_jti = NULL WHERE user.id = :id"),
+                text("UPDATE users SET access_jti = NULL WHERE users.id = :id"),
                 {"id": user.id}
             )
             self.db.commit()
@@ -111,7 +111,7 @@ class AuthService:
             raise e
 
 
-# Katso UsersReposiotrion alaosasta kommentointi näihin liittyen
+# Katso UsersServicen alaosasta kommentointi näihin liittyen
 def get_service(db: DB):
     return AuthService(db)
 

@@ -6,7 +6,7 @@ from app.dtos.schema import User
 from app.services.auth import pwd_context
 
 
-class UsersRepository:
+class UsersService:
 
     def __init__(self, db):
         self.db = db
@@ -16,7 +16,7 @@ class UsersRepository:
         try:
             # Löytyykö role tietokannasta
             role_id = self.db.execute(
-                text("SELECT id FROM role WHERE id = :role_id"),
+                text("SELECT id FROM roles WHERE id = :role_id"),
                 {"role_id": user.role_id}
             ).mappings().first()
 
@@ -26,7 +26,7 @@ class UsersRepository:
 
             # Onko käyttäjänimi jo käytössä
             user_in_db = self.db.execute(
-                text("SELECT username FROM user WHERE username = :username"),
+                text("SELECT username FROM users WHERE username = :username"),
                 {"username": user.username}
             ).mappings().first()
 
@@ -40,7 +40,7 @@ class UsersRepository:
             # Voidaan suorittaa insert ja commitoida se.
             # Tallennetaan kyselystä palautunut id User modeliin.
             user.id = self.db.execute(
-                text("INSERT INTO user(username, password, first_name, last_name, email, role_id, team_id, created_at) "
+                text("INSERT INTO users(username, password, first_name, last_name, email, role_id, team_id, created_at) "
                      "VALUES(:username, :password, :first_name, :last_name, email, :role_id, :team_id, NOW())"),
                 {
                     "username": user.username,
@@ -61,13 +61,11 @@ class UsersRepository:
 
 
 # Initialisoidaan UsersRepository tietokantayhteyden kanssa
-def get_user_repo(db: DB):
-    return UsersRepository(db)
+def get_service(db: DB):
+    return UsersService(db)
 
 
 # Tämän toimintaperiaate on sama kuin databasen luonnissa.
-# UsersRepo luodaan, kun backend buildataan. Tämä muuttuja sisältää UsersRepositorion,
-# joka luodaan, kun suoritetaan get_user_repo
-# Kyseisessä funktiossa injektoidaan tietokantayhteys UsersRepositoriolle.
-# UsersRepoa käytetään nyt välittämällä tämä muuttuja parametrinä controllerin functioon -> (repo: UsersRepo).
-UsersRepo = Annotated[UsersRepository, Depends(get_user_repo)]
+# Alla olevassa annotated funktiossa injektoidaan tietokantayhteys UsersServicelle.
+# UsersService injektoidaan nyt välittämällä tämä muuttuja parametrinä controllerin functioon -> (service: UsersServ).
+UsersServ = Annotated[UsersService, Depends(get_service)]

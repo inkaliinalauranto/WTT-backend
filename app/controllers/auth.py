@@ -6,7 +6,7 @@ from app.utils.access_token import Token
 from fastapi import APIRouter, Depends
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
 from app.dtos.auth import LoginRes, AuthUser, LoginReq
-from app.repositories.users import UsersRepo
+from app.repositories.users import UsersServ
 from app.services.auth import AuthServ
 
 
@@ -31,9 +31,9 @@ async def get_logged_in_user(logged_in_user: LoggedInUser) -> AuthUser:
 
 # Luo tietokantaan uusi käyttäjä
 @router.post("/register")
-async def create_new_user(req: User, repo: UsersRepo) -> AuthUser:
+async def create_new_user(req: User, service: UsersServ) -> AuthUser:
     # Luodaan repossa uusi käyttäjä (User) tietokantaan. Eli rekisteröidään se. Palautetaan AuthUser.
-    repo.create(req)
+    service.create(req)
     return AuthUser(id=req.id, username=req.username, role_id=req.role_id, team_id=req.team_id)
 
 

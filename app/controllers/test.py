@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.repositories.test import get_test
+from app.services.test import get_test
 from app.dtos.schema import Test
 from app.db import DB
 
