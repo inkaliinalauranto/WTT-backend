@@ -1,7 +1,7 @@
 ## Projektin lataaminen ja konfigurointi Windows-käyttöjärjestelmällä
 1. Kloonaa repositorio:
 ```
-git clone https://github.com/inkaliinalauranto/WTT-backend.git
+git clone https://github.com/Anttiom1/WTT-backend.git
 ```
 2. Avaa projekti esim. *Visual Studio Codella*:
 ```

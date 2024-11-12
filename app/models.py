@@ -58,3 +58,21 @@ class Organization(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(45), nullable=False, unique=True)
+
+
+class ShifType(Base):
+    __tablename__ = "shift_type"
+
+    id = Column(Integer, primary_key=True, index=True)
+    type = Column(String(45), nullable=False, unique=True)
+
+
+class Shift(Base):
+    __tablename__ = "shift"
+
+    id = Column(Integer, primary_key=True, index=True)
+    start_time = Column(TIMESTAMP, nullable=False)
+    end_time = Column(TIMESTAMP, nullable=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    shift_type_id = Column(Integer, ForeignKey("shift_type.id"))
+    description = Column(String(255), nullable=True)
