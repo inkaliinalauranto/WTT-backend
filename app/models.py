@@ -60,7 +60,7 @@ class Organization(Base):
     name = Column(String(45), nullable=False, unique=True)
 
 
-class ShifType(Base):
+class ShiftType(Base):
     __tablename__ = "shift_type"
 
     id = Column(Integer, primary_key=True, index=True)
