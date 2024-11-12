@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.dialects.mssql import TIMESTAMP
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import declarative_base
 
 
 # Tänne tehdään kirjaimellisesti tietokannan taulut

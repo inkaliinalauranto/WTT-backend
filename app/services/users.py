@@ -2,7 +2,7 @@ from fastapi import Depends,HTTPException
 from sqlalchemy import text
 from typing import Annotated
 from app.db import DB
-from app.dtos.schema import User
+from app.dtos.users import User
 from app.services.auth import pwd_context
 
 

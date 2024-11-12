@@ -1,12 +1,12 @@
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from app.utils.logged_in_user import LoggedInUser
-from app.dtos.schema import User
+from app.dtos.users import User
 from app.utils.access_token import Token
 from fastapi import APIRouter, Depends
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
 from app.dtos.auth import LoginRes, AuthUser, LoginReq
-from app.repositories.users import UsersServ
+from app.services.users import UsersServ
 from app.services.auth import AuthServ
 
 
