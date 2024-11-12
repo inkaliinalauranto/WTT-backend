@@ -43,7 +43,7 @@ def index():
             </style>
           </head>
           <body style="align-items: centered">
-            <a class="button" href="/docs">Open Fastapi Swagger UI</a>
+            <a class="button" href="/docs">Open Fastapi Swagger UI AA</a>
           </body>
         </html>
     """
