@@ -1,11 +1,11 @@
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
+from app import models
 from app.utils.logged_in_user import LoggedInUser
-from app.dtos.users import User
 from app.utils.access_token import Token
 from fastapi import APIRouter, Depends
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
-from app.dtos.auth import LoginRes, AuthUser, LoginReq
+from app.dtos.auth import LoginRes, AuthUser, LoginReq, RegisterReq
 from app.services.users import UsersServ
 from app.services.auth import AuthServ
 
@@ -31,10 +31,11 @@ async def get_logged_in_user(logged_in_user: LoggedInUser) -> AuthUser:
 
 # Luo tietokantaan uusi käyttäjä
 @router.post("/register")
-async def create_new_user(req: User, service: UsersServ) -> AuthUser:
-    # Luodaan repossa uusi käyttäjä (User) tietokantaan. Eli rekisteröidään se. Palautetaan AuthUser.
-    service.create(req)
-    return AuthUser(id=req.id, username=req.username, role_id=req.role_id, team_id=req.team_id)
+async def create_new_user(req: RegisterReq, service: UsersServ) -> AuthUser:
+    # Luodaan requestista vajaa models.User instanssi. Service täyttää loput.
+    user = models.User(**req.model_dump())
+    service.create(user)
+    return AuthUser(id=user.id, username=user.username, role_id=user.role_id, team_id=user.team_id)
 
 
 # Login openapin docsin kaavakkeella
