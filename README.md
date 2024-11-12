@@ -31,3 +31,4 @@ CREATE_DB_TABLES="true"
 ```
 9. Luo tietokantaan roolille tietueet "employee" ja "manager", sekä yksi organisaatio ja yksi team.
 
+
