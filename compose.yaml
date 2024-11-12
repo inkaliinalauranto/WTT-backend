@@ -33,7 +33,7 @@ services:
     depends_on:
       - db
     ports:
-      - ${FASTAPI_PORT}:80
+      - ${FASTAPI_PORT}:8000
   phpmyadmin:
     image: phpmyadmin
     restart: always
