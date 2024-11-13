@@ -14,8 +14,8 @@ class ShiftsService:
         """
         SELECT * FROM shifts WHERE shift_id = {shift_id}
         """
-        shift_id_tuple = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
-        return shift_id_tuple
+        shift = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
+        return shift
     
     def delete_shift_by_id(self, shift_id):
         try:
