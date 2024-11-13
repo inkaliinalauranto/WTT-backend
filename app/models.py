@@ -1,5 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String, ForeignKey
-from sqlalchemy.dialects.mssql import TIMESTAMP
+from sqlalchemy import TIMESTAMP, Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base
 
 
@@ -67,8 +66,8 @@ class Shift(Base):
     __tablename__ = "shifts"
 
     id = Column(Integer, primary_key=True, index=True)
-    start_time = Column(DateTime, nullable=False)
-    end_time = Column(DateTime, nullable=True)
+    start_time = Column(TIMESTAMP, nullable=False)
+    end_time = Column(TIMESTAMP, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     shift_type_id = Column(Integer, ForeignKey("shift_types.id"))
     description = Column(String(255), nullable=True)
