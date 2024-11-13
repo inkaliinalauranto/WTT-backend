@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 
-from fastapi import Depends,HTTPException
-from sqlalchemy import text
+from fastapi import Depends, HTTPException
+from sqlalchemy import text, func
 from typing import Annotated
 from app.db import DB
 from app import models
+from app.models import Shift, ShiftType, User
 from app.services.auth import pwd_context
 
 
@@ -13,6 +14,43 @@ class UsersService:
     def __init__(self, db):
         self.db = db
 
+    # Haetaan käyttäjä id:n perusteella:
+    def get_by_id(self, user_id):
+        """"
+        SELECT * FROM users WHERE id = {user_id}
+        """
+        user_id_tuple = (self.db.query(User).filter(User.id == user_id)).first()
+        return user_id_tuple
+
+    # Haetaan id:n perusteella käyttäjän kuluvan viikon suunnitellut työvuorot:
+    def get_planned_shifts_by_id(self, user_id):
+        # Tarkistetaan ensin, löytyykö käyttäjää. get_by_id palauttaa Nonen,
+        # jos käyttäjää haetulla id:llä ei ole olemassa:
+        user = self.get_by_id(user_id)
+
+        if user is None:
+            return None
+
+        """
+        SELECT s.start_time, s.end_time FROM shifts s
+        JOIN shift_types st ON s.shift_type_id = st.id
+        JOIN users u ON s.user_id = u.id
+        WHERE u.id = {user_id}
+        AND st.type = "planned"
+        AND YEARWEEK(s.start_time, 1) = YEARWEEK(CURRENT_TIMESTAMP(), 1)
+        """
+
+        shift_times = (self.db.query(Shift.start_time, Shift.end_time)
+                       .join(ShiftType, Shift.shift_type_id == ShiftType.id)
+                       .join(User, Shift.user_id == User.id)
+                       .filter(User.id == user_id,
+                               ShiftType.type == "planned",
+                               func.yearweek(Shift.start_time, 1) == func.yearweek(func.current_timestamp(), 1))).all()
+
+        planned_shift_dicts_list = [{"start_time": shift.start_time, "end_time": shift.end_time} for shift in
+                                    shift_times]
+
+        return planned_shift_dicts_list
 
     def create(self, user: models.User):
         try:
@@ -42,7 +80,6 @@ class UsersService:
 
             if username is not None:
                 raise HTTPException(status_code=409, detail="Username is taken")
-
 
             # Häshätään salasana
             hashed_pw = pwd_context.hash(user.password)
