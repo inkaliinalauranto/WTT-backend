@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-
 from fastapi import Depends, HTTPException
 from sqlalchemy import text, func
 from typing import Annotated
