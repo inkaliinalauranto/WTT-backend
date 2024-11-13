@@ -16,6 +16,10 @@ DB_NAME = os.getenv("MYSQL_DATABASE_NAME")
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 
 engine = create_engine(DATABASE_URL)
+
+# # uvicornilla devaus:
+# engine = create_engine("mysql+mysqlconnector://root:@localhost/wtt")
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
