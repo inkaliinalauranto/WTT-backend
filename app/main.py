@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from app.controllers import test, auth
+from app.controllers import test, auth, work
 from app.db import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +17,7 @@ if os.getenv("CREATE_DB_TABLES") == "true":
 app = FastAPI()
 app.include_router(test.router)
 app.include_router(auth.router)
+app.include_router(work.router)
 
 
 # Määritellän sallitut originit. Devausvaiheessa periaatteesa sallia kaikki allow_origins['*']
