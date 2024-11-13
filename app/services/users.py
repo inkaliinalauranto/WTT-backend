@@ -7,6 +7,7 @@ from app.db import DB
 from app import models
 from app.models import Shift, ShiftType, User
 from app.services.auth import pwd_context
+from app.dtos.users import ShiftTime
 
 
 class UsersService:
@@ -15,18 +16,18 @@ class UsersService:
         self.db = db
 
     # Haetaan käyttäjä id:n perusteella:
-    def get_by_id(self, user_id):
+    async def get_by_id(self, user_id: int) -> User:
         """"
         SELECT * FROM users WHERE id = {user_id}
         """
-        user_id_tuple = (self.db.query(User).filter(User.id == user_id)).first()
-        return user_id_tuple
+        user = (self.db.query(User).filter(User.id == user_id)).first()
+        return user
 
     # Haetaan id:n perusteella käyttäjän kuluvan viikon suunnitellut työvuorot:
-    def get_planned_shifts_by_id(self, user_id):
+    async def get_planned_shifts_by_id(self, user_id: int) -> list[ShiftTime] | None:
         # Tarkistetaan ensin, löytyykö käyttäjää. get_by_id palauttaa Nonen,
         # jos käyttäjää haetulla id:llä ei ole olemassa:
-        user = self.get_by_id(user_id)
+        user = await self.get_by_id(user_id)
 
         if user is None:
             return None
@@ -47,7 +48,7 @@ class UsersService:
                                ShiftType.type == "planned",
                                func.yearweek(Shift.start_time, 1) == func.yearweek(func.current_timestamp(), 1))).all()
 
-        planned_shift_dicts_list = [{"start_time": shift.start_time, "end_time": shift.end_time} for shift in
+        planned_shift_dicts_list = [ShiftTime(start_time=shift.start_time, end_time=shift.end_time) for shift in
                                     shift_times]
 
         return planned_shift_dicts_list
