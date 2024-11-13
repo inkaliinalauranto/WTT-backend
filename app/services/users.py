@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from fastapi import Depends,HTTPException
-from sqlalchemy import text
 from typing import Annotated
 from app.db import DB
 from app import models

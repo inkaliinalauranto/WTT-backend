@@ -2,12 +2,9 @@ import uuid
 from datetime import timedelta
 from typing import Annotated
 from fastapi import Depends, HTTPException
-from jose import JWTError
 from passlib.context import CryptContext
-from sqlalchemy import text
-
 from app import models
-from app.dtos.auth import AuthUser, LoginReq
+from app.dtos.auth import LoginReq
 from app.db import DB
 from app.utils.access_token import Token
 
