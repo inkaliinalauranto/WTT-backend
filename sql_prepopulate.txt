@@ -1,0 +1,9 @@
+Suorita alla oleva kysely ja buildaa docker jos tarvitsee alustaa.
+DROP TABLES shifts, users, roles, teams, organisations;
+
+Suorita alla olevat prepopulate kyselyt.
+INSERT INTO organizations(name) VALUES("Stacked Oy");
+INSERT INTO teams(name, organization_id) VALUES("Frontend devs", 1);
+INSERT INTO teams(name, organization_id) VALUES("Backend devs", 1);
+INSERT INTO roles(name) VALUES("employee");
+INSERT INTO roles(name) VALUES("manager");

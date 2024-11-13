@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 from app.controllers import test, auth, work
 from app.db import engine
 from app.models import Base
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # Jos et halua luoda tauluja, ei jätä enviin esim. tyhjä string.
@@ -17,6 +18,21 @@ app = FastAPI()
 app.include_router(test.router)
 app.include_router(auth.router)
 app.include_router(work.router)
+
+
+# Määritellän sallitut originit. Devausvaiheessa periaatteesa sallia kaikki allow_origins['*']
+origins = [
+    "http://localhost:5173",  # Frontendin origin
+    # Kaikki muut originit
+]
+# Lisätään originit sallituiden listalle
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # List of allowed origins or ["*"] for any origin
+    allow_credentials=True,  # Allow cookies and other credentials in requests
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers, or specify certain headers
+)
 
 
 # :D
