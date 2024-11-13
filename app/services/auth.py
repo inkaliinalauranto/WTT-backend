@@ -5,6 +5,8 @@ from fastapi import Depends, HTTPException
 from jose import JWTError
 from passlib.context import CryptContext
 from sqlalchemy import text
+
+from app import models
 from app.dtos.auth import AuthUser, LoginReq
 from app.db import DB
 from app.utils.access_token import Token
@@ -15,7 +17,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthService:
-
     def __init__(self, db: DB):
         self.db = db
 
@@ -23,45 +24,21 @@ class AuthService:
     # Autentisoi käyttäjän login tiedot ja palauttaa True, mikäli käyttäjätunnus ja salasana ovat valideja
     def _authenticate_user(self, credentials: LoginReq):
         # Haetaan user usernamen perusteella, tämä on mahdollista, koska username on uniikki
+        user = self.db.query(models.User).filter(models.User.username == credentials.username).first()
+        """
         user = self.db.execute(
             text("SELECT * FROM users WHERE username = :username"),
             {"username": credentials.username}
         ).mappings().first()
-
+        """
         if not user:
             return False
 
-        if not pwd_context.verify(credentials.password, user["password"]):
+        if not pwd_context.verify(credentials.password, user.password):
             return False
 
         # Kaikki ok
         return True
-
-
-    def get_user_by_access_jti(self, access_jti):
-        try:
-            # Haetaan user access_tokenin perusteella.
-            user = self.db.execute(
-                text("SELECT * FROM users WHERE access_jti = :sub"),
-                {"sub": access_jti}
-            ).mappings().first()
-
-            if not user:
-                raise JWTError
-
-            return AuthUser(
-                id=user['id'],
-                username=user['username'],
-                role_id=user['role_id'],
-                team_id=user['team_id']
-            )
-
-        except JWTError:
-            raise HTTPException(
-                status_code=401,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
 
 
     def login(self, credentials: LoginReq, token: Token):
@@ -81,16 +58,19 @@ class AuthService:
 
             # Päivitetään access_jti tietokantaan kyseiselle käyttäjälle.
             # Tätä käytetään, kun haetaan sisäänkirjautunut käyttäjä tai halutaan kirjautua ulos
+            """
             self.db.execute(
                 text("UPDATE users SET access_jti = :sub WHERE username = :username"),
                 {"sub": access_jti, "username": credentials.username}
             )
+            """
+            # Haetaan User ja asetetaan sinne tokenin subscriber.
+            user = self.db.query(models.User).filter(models.User.username == credentials.username).first()
+            user.access_jti = access_jti
+
             self.db.commit()
 
-            # Haetaan AuthUser
-            user = self.get_user_by_access_jti(access_jti)
-
-            # Palautetaan AuthUser ja generoitu token.
+            # Palautetaan User ja generoitu token.
             return user, access_token
 
         except Exception as e:
@@ -98,12 +78,15 @@ class AuthService:
             raise e
 
 
-    def logout(self, user):
+    def logout(self, user: models.User):
         try:
+            """
             self.db.execute(
                 text("UPDATE users SET access_jti = NULL WHERE users.id = :id"),
                 {"id": user.id}
             )
+            """
+            user.access_jti = None
             self.db.commit()
 
         except Exception as e:
