@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.dialects.mssql import TIMESTAMP
+from sqlalchemy import TIMESTAMP, Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base
 
 
