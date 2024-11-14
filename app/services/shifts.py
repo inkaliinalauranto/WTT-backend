@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 from sqlalchemy import func, insert
 from app.db import DB
-from app.dtos.shifts import ShiftTime, StartShiftRes
+from app.dtos.shifts import ShiftTime, StartShiftRes, EndShiftRes
 from app.models import Shift, ShiftType, User
 
 
@@ -102,6 +102,24 @@ class ShiftsService:
                                  start_time=datetime.now().replace(microsecond=0),
                                  user_id=user_id,
                                  shift_type_id=shift_type_id)
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
+    async def end_shift(self, shift_id: int) -> EndShiftRes:
+        try:
+            shift = self.get_shift_by_id(shift_id)
+            shift.end_time = func.current_timestamp()
+
+            self.db.commit()
+
+            return EndShiftRes(id=shift.id,
+                               start_time=shift.start_time,
+                               end_time=datetime.now().replace(microsecond=0),
+                               user_id=shift.user_id,
+                               shift_type_id=shift.shift_type_id)
 
         except Exception as e:
             self.db.rollback()

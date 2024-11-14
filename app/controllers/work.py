@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.dtos.shifts import UpdateReq, ShiftTime, StartShiftRes
+from app.dtos.shifts import UpdateReq, ShiftTime, StartShiftRes, EndShiftRes
 from app.services.shifts import ShiftsServ
 
 router = APIRouter(
@@ -30,7 +30,15 @@ async def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: Shifts
 
 # Leimaa valitun työntekijän työvuoron alkaneeksi ja palauttaa leimatun vuoron
 # tiedot:
-@router.post("/shifts/{user_id}")
+@router.post("/shifts/start/{user_id}")
 async def start_shift(user_id: int, service: ShiftsServ) -> StartShiftRes:
     started_shift = await service.start_shift(user_id)
     return started_shift
+
+
+# Leimaa valitun työntekijän työvuoron päättyneeksi ja palauttaa leimatun
+# vuoron tiedot:
+@router.patch("/shifts/end/{shift_id}")
+async def end_shift(shift_id: int, service: ShiftsServ) -> EndShiftRes:
+    ended_shift = await service.end_shift(shift_id)
+    return ended_shift
