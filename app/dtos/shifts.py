@@ -2,6 +2,13 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class StartShiftRes(BaseModel):
+    id: int
+    start_time: datetime
+    user_id: int
+    shift_type_id: int
+
+
 class ShiftTime(BaseModel):
     id: int
     weekday: str
