@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import Annotated
 from fastapi import Depends, HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, insert
 from app.db import DB
-from app.dtos.shifts import ShiftTime
+from app.dtos.shifts import ShiftTime, StartShiftRes
 from app.models import Shift, ShiftType, User
 
 
@@ -79,6 +80,28 @@ class ShiftsService:
             self.db.refresh(shift)
 
             return shift
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    # Leimataan id:n perusteella valitun käyttäjän työvuoro alkaneeksi:
+    async def start_shift(self, user_id: int) -> StartShiftRes:
+        try:
+            shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "active").first()[0]
+
+            add_query = insert(Shift).values(start_time=func.current_timestamp(),
+                                             user_id=user_id,
+                                             shift_type_id=shift_type_id)
+
+            result = self.db.execute(add_query)
+            shift_id = result.lastrowid
+            self.db.commit()
+
+            return StartShiftRes(id=shift_id,
+                                 start_time=datetime.now().replace(microsecond=0),
+                                 user_id=user_id,
+                                 shift_type_id=shift_type_id)
 
         except Exception as e:
             self.db.rollback()
