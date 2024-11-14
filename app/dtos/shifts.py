@@ -3,6 +3,8 @@ from pydantic import BaseModel
 
 
 class ShiftTime(BaseModel):
+    id: int
+    weekday: str
     start_time: datetime
     end_time: datetime
 
