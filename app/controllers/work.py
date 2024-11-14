@@ -13,9 +13,6 @@ router = APIRouter(
 async def get_weekly_shifts_by_id(user_id: int, service: ShiftsServ) -> list[ShiftTime]:
     planned_shift_dicts_list = await service.get_planned_shifts_by_id(user_id)
 
-    if planned_shift_dicts_list is None:
-        raise HTTPException(status_code=404, detail="User not found")
-
     return planned_shift_dicts_list
 
 
