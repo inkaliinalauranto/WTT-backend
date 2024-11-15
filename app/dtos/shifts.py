@@ -20,8 +20,9 @@ class StartShiftRes(BaseModel):
 class ShiftTime(BaseModel):
     id: int
     weekday: str
+    shift_type: str
     start_time: datetime
-    end_time: datetime
+    end_time: datetime | None
 
 
 class UpdateReq(BaseModel):
