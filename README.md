@@ -29,4 +29,4 @@ docker compose up --build
 ```
 CREATE_DB_TABLES="true"
 ```
-9. Luo tietokantaan roolille tietueet "employee" ja "manager", sekä yksi organisaatio ja yksi team.
+9. Suorita sql_prepopulate insertit

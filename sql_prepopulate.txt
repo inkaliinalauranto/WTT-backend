@@ -7,3 +7,5 @@ INSERT INTO teams(name, organization_id) VALUES("Frontend devs", 1);
 INSERT INTO teams(name, organization_id) VALUES("Backend devs", 1);
 INSERT INTO roles(name) VALUES("employee");
 INSERT INTO roles(name) VALUES("manager");
+INSERT INTO shift_types(type) VALUES("actual");
+INSERT INTO shift_types(type) VALUES("planned");

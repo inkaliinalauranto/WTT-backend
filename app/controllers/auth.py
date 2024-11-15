@@ -64,5 +64,3 @@ async def login(req: LoginReq, service: AuthServ, token: Token) -> LoginRes:
 @router.post("/logout", status_code=204)
 async def logout(logged_in_user: LoggedInUser, service: AuthServ):
     service.logout(logged_in_user)
-    # Ok, no content
-    return ""

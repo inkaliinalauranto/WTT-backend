@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 from app.db import DB
 from app import models
-from app.models import User
+from app.models import User, Role
 from app.services.auth import pwd_context
 
 
@@ -92,7 +92,7 @@ class UsersService:
               """
         return user
     
-    async def delete_user_by_id(self, user_id: int):
+    async def delete_user_by_id(self, user_id: int, role: Role):
         try:
             # Haetaan asyncisti id:n perusteella poistettava käyttäjä
             user = await self.get_by_id(user_id)
@@ -100,6 +100,10 @@ class UsersService:
             if user is None:
                 # Jos käyttäjää ei ole, palautetaan 404
                 raise HTTPException(status_code=404, detail="User not found")
+
+            if role.id == user.role_id:
+                # Jos käyttäjän rooli on sama kuin poistettavan rooli, tämä on kiellettyä.
+                raise HTTPException(status_code=401, detail="Unauthorized action")
             
             # Jos käyttäjä löytyy, poistetaan se
             self.db.delete(user)
