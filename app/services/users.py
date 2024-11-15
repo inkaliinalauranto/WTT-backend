@@ -91,6 +91,23 @@ class UsersService:
               ).mappings().first()
               """
         return user
+    
+    async def delete_user_by_id(self, user_id: int):
+        try:
+            # Haetaan asyncisti id:n perusteella poistettava käyttäjä
+            user = await self.get_by_id(user_id)
+
+            if user is None:
+                # Jos käyttäjää ei ole, palautetaan 404
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            # Jos käyttäjä löytyy, poistetaan se
+            self.db.delete(user)
+            self.db.commit()
+            
+        except Exception as e:
+            self.db.rollback()
+            raise e
 
 
 # Initialisoidaan UsersRepository tietokantayhteyden kanssa

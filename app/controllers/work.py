@@ -18,12 +18,12 @@ async def get_weekly_shifts_by_id(user_id: int, service: ShiftsServ) -> list[Shi
 
 @router.delete("/shifts/{shift_id}")
 async def delete_shift_by_id(shift_id, service: ShiftsServ):
-    service.delete_shift_by_id(shift_id)
+    await service.delete_shift_by_id(shift_id)
 
 
 @router.patch("/shifts/{shift_id}")
 async def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ):
-    shift = service.update_shift_by_id(shift_id, updated_shift)
+    shift = await service.update_shift_by_id(shift_id, updated_shift)
 
     return shift
 

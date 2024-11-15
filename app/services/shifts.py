@@ -11,7 +11,7 @@ class ShiftsService:
     def __init__(self, db):
         self.db = db
 
-    def get_shift_by_id(self, shift_id):
+    async def get_shift_by_id(self, shift_id):
         """
         SELECT * FROM shifts WHERE shift_id = {shift_id}
         """
@@ -48,9 +48,9 @@ class ShiftsService:
 
         return planned_shift_dicts_list
 
-    def delete_shift_by_id(self, shift_id):
+    async def delete_shift_by_id(self, shift_id):
         try:
-            shift = self.get_shift_by_id(shift_id)
+            shift = await self.get_shift_by_id(shift_id)
 
             if shift is None:
                 raise HTTPException(status_code=404, detail="Shift not found")
@@ -63,9 +63,9 @@ class ShiftsService:
             self.db.rollback()
             raise e
 
-    def update_shift_by_id(self, shift_id, updated_shift):
+    async def update_shift_by_id(self, shift_id, updated_shift):
         try:
-            shift = self.get_shift_by_id(shift_id)
+            shift = await self.get_shift_by_id(shift_id)
 
             if shift is None:
                 raise HTTPException(status_code=404, detail="Shift not found")
