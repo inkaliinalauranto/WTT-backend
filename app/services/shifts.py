@@ -5,6 +5,7 @@ from sqlalchemy import func, insert
 from app.db import DB
 from app.dtos.shifts import ShiftTime, StartShiftRes, EndShiftRes
 from app.models import Shift, ShiftType, User
+from app.utils.logged_in_user import LoggedInUser
 
 
 class ShiftsService:
@@ -18,30 +19,22 @@ class ShiftsService:
         shift = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
         return shift
 
-    # Haetaan id:n perusteella käyttäjän kuluvan viikon suunnitellut työvuorot:
-    async def get_planned_shifts_by_id(self, user_id: int) -> list[ShiftTime] | None:
-        """
-        SELECT id, WEEKDAY(s.start_time), s.start_time, s.end_time
-        FROM shifts s
-        JOIN shift_types st ON s.shift_type_id = st.id
-        JOIN users u ON s.user_id = u.id
-        WHERE u.id = {user_id}
-        AND st.type = "planned"
-        AND YEARWEEK(s.start_time, 1) = YEARWEEK(CURRENT_TIMESTAMP(), 1)
-        """
-
+    # Haetaan id:n perusteella käyttäjän kuluvan viikon työvuorot, jonka
+    # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
+    async def get_planned_shifts_by_id(self, user_id: int, shift_type: str) -> list[ShiftTime] | None:
         shift_times = (
-            self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), Shift.start_time, Shift.end_time)
+            self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time, Shift.end_time)
             .join(ShiftType, Shift.shift_type_id == ShiftType.id)
             .join(User, Shift.user_id == User.id)
             .filter(User.id == user_id,
-                    ShiftType.type == "planned",
+                    ShiftType.type == shift_type,
                     func.yearweek(Shift.start_time, 1) == func.yearweek(func.current_timestamp(), 1))).all()
 
         weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
         planned_shift_dicts_list = [ShiftTime(id=shift.id,
                                               weekday=weekdays[shift.weekday],
+                                              shift_type=shift.type,
                                               start_time=shift.start_time,
                                               end_time=shift.end_time)
                                     for shift in shift_times]
@@ -86,12 +79,12 @@ class ShiftsService:
             raise e
 
     # Leimataan id:n perusteella valitun käyttäjän työvuoro alkaneeksi:
-    async def start_shift(self, user_id: int) -> StartShiftRes:
+    async def start_shift(self, logged_in_user: LoggedInUser) -> StartShiftRes:
         try:
-            shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "active").first()[0]
+            shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
 
             add_query = insert(Shift).values(start_time=func.current_timestamp(),
-                                             user_id=user_id,
+                                             user_id=logged_in_user.id,
                                              shift_type_id=shift_type_id)
 
             result = self.db.execute(add_query)
@@ -100,7 +93,7 @@ class ShiftsService:
 
             return StartShiftRes(id=shift_id,
                                  start_time=datetime.now().replace(microsecond=0),
-                                 user_id=user_id,
+                                 user_id=logged_in_user.id,
                                  shift_type_id=shift_type_id)
 
         except Exception as e:
@@ -110,7 +103,7 @@ class ShiftsService:
     # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
     async def end_shift(self, shift_id: int) -> EndShiftRes:
         try:
-            shift = self.get_shift_by_id(shift_id)
+            shift = await self.get_shift_by_id(shift_id)
             shift.end_time = func.current_timestamp()
 
             self.db.commit()
