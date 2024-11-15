@@ -42,6 +42,6 @@ def start_shift(logged_in_user: LoggedInUser, service: ShiftsServ) -> StartShift
 # Leimaa valitun työvuoron päättyneeksi ja palauttaa leimatun vuoron tiedot.
 # Tässä logged_in_user ei toiminut.
 @router.patch("/shifts/end/{shift_id}")
-def end_shift(shift_id: int, service: ShiftsServ) -> EndShiftRes:
-    ended_shift = service.end_shift(shift_id)
+def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) -> EndShiftRes:
+    ended_shift = service.end_shift(shift_id, logged_in_user)
     return ended_shift

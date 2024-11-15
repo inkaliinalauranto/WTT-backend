@@ -79,12 +79,12 @@ class ShiftsService:
             raise e
 
     # Leimataan id:n perusteella valitun käyttäjän työvuoro alkaneeksi:
-    def start_shift(self, logged_in_user: LoggedInUser) -> StartShiftRes:
+    def start_shift(self, user: User) -> StartShiftRes:
         try:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
 
             add_query = insert(Shift).values(start_time=func.current_timestamp(),
-                                             user_id=logged_in_user.id,
+                                             user_id=user.id,
                                              shift_type_id=shift_type_id)
 
             result = self.db.execute(add_query)
@@ -93,7 +93,7 @@ class ShiftsService:
 
             return StartShiftRes(id=shift_id,
                                  start_time=datetime.now().replace(microsecond=0),
-                                 user_id=logged_in_user.id,
+                                 user_id=user.id,
                                  shift_type_id=shift_type_id)
 
         except Exception as e:
@@ -101,9 +101,13 @@ class ShiftsService:
             raise e
 
     # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
-    def end_shift(self, shift_id: int) -> EndShiftRes:
+    def end_shift(self, shift_id: int, user: User) -> EndShiftRes:
         try:
             shift = self.get_shift_by_id(shift_id)
+
+            if shift.user_id != user.id:
+                raise HTTPException(status_code=401, detail="Unauthorized action")
+
             shift.end_time = func.current_timestamp()
 
             self.db.commit()
