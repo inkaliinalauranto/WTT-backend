@@ -1,9 +1,8 @@
 from datetime import datetime, timezone
-from fastapi import HTTPException
 from os import environ
 from typing import Annotated
 from fastapi.params import Depends
-from jose import jwt, JWTError
+from jose import jwt
 
 
 class AccessToken:
