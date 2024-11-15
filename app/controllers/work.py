@@ -14,7 +14,7 @@ router = APIRouter(
 # myös esimiehen on pystyttävä tarkastelemaan alaisensa työvuoroja:
 @router.get("/shifts/week/{user_id}/{shift_type}")
 async def get_shifts_of_week_by_user_id(user_id: int, shift_type: str, service: ShiftsServ) -> list[ShiftTime]:
-    planned_shift_dicts_list = await service.get_planned_shifts_by_id(user_id, shift_type)
+    planned_shift_dicts_list = await service.get_shifts_by_user_id(user_id, shift_type)
 
     return planned_shift_dicts_list
 

@@ -21,7 +21,7 @@ class ShiftsService:
 
     # Haetaan id:n perusteella käyttäjän kuluvan viikon työvuorot, jonka
     # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
-    async def get_planned_shifts_by_id(self, user_id: int, shift_type: str) -> list[ShiftTime] | None:
+    async def get_shifts_by_user_id(self, user_id: int, shift_type: str) -> list[ShiftTime] | None:
         shift_times = (
             self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time, Shift.end_time)
             .join(ShiftType, Shift.shift_type_id == ShiftType.id)
