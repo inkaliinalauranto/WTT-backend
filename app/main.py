@@ -1,4 +1,5 @@
 import os
+import dotenv
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from app.controllers import test, auth, work, users
@@ -6,6 +7,8 @@ from app.db import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
 
+
+dotenv.load_dotenv()
 
 # Jos et halua luoda tauluja, ei jätä enviin esim. tyhjä string.
 if os.getenv("CREATE_DB_TABLES") == "true":
