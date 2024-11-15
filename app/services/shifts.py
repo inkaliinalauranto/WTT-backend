@@ -12,7 +12,7 @@ class ShiftsService:
     def __init__(self, db):
         self.db = db
 
-    async def get_shift_by_id(self, shift_id):
+    def get_shift_by_id(self, shift_id):
         """
         SELECT * FROM shifts WHERE shift_id = {shift_id}
         """
@@ -21,7 +21,7 @@ class ShiftsService:
 
     # Haetaan id:n perusteella käyttäjän kuluvan viikon työvuorot, jonka
     # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
-    async def get_shifts_by_user_id(self, user_id: int, shift_type: str) -> list[ShiftTime] | None:
+    def get_shifts_by_user_id(self, user_id: int, shift_type: str) -> list[ShiftTime] | None:
         shift_times = (
             self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time, Shift.end_time)
             .join(ShiftType, Shift.shift_type_id == ShiftType.id)
@@ -41,9 +41,9 @@ class ShiftsService:
 
         return planned_shift_dicts_list
 
-    async def delete_shift_by_id(self, shift_id):
+    def delete_shift_by_id(self, shift_id):
         try:
-            shift = await self.get_shift_by_id(shift_id)
+            shift = self.get_shift_by_id(shift_id)
 
             if shift is None:
                 raise HTTPException(status_code=404, detail="Shift not found")
@@ -56,9 +56,9 @@ class ShiftsService:
             self.db.rollback()
             raise e
 
-    async def update_shift_by_id(self, shift_id, updated_shift):
+    def update_shift_by_id(self, shift_id, updated_shift):
         try:
-            shift = await self.get_shift_by_id(shift_id)
+            shift = self.get_shift_by_id(shift_id)
 
             if shift is None:
                 raise HTTPException(status_code=404, detail="Shift not found")
@@ -79,7 +79,7 @@ class ShiftsService:
             raise e
 
     # Leimataan id:n perusteella valitun käyttäjän työvuoro alkaneeksi:
-    async def start_shift(self, logged_in_user: LoggedInUser) -> StartShiftRes:
+    def start_shift(self, logged_in_user: LoggedInUser) -> StartShiftRes:
         try:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
 
@@ -101,9 +101,9 @@ class ShiftsService:
             raise e
 
     # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
-    async def end_shift(self, shift_id: int) -> EndShiftRes:
+    def end_shift(self, shift_id: int) -> EndShiftRes:
         try:
-            shift = await self.get_shift_by_id(shift_id)
+            shift = self.get_shift_by_id(shift_id)
             shift.end_time = func.current_timestamp()
 
             self.db.commit()
