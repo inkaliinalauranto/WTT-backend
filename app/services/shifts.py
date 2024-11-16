@@ -18,14 +18,14 @@ class ShiftsService:
         shift = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
         return shift
 
-    # Haetaan id:n perusteella käyttäjän kuluvan viikon työvuorot, jonka
+    # Haetaan id:n perusteella työntekijän kuluvan viikon työvuorot, jonka
     # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
-    def get_shifts_by_user_id(self, user_id: int, shift_type: str) -> list[ShiftTime] | None:
+    def get_shifts_by_employee_id(self, employee_id: int, shift_type: str) -> list[ShiftTime] | None:
         shift_times = (
             self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time, Shift.end_time)
             .join(ShiftType, Shift.shift_type_id == ShiftType.id)
             .join(User, Shift.user_id == User.id)
-            .filter(User.id == user_id,
+            .filter(User.id == employee_id,
                     ShiftType.type == shift_type,
                     func.yearweek(Shift.start_time, 1) == func.yearweek(func.current_timestamp(), 1))).all()
 
@@ -81,8 +81,9 @@ class ShiftsService:
     def start_shift(self, user: User) -> ShiftRes:
         try:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
+            timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
 
-            add_query = insert(Shift).values(start_time=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8'),
+            add_query = insert(Shift).values(start_time=timestamp,
                                              user_id=user.id,
                                              shift_type_id=shift_type_id)
 
@@ -91,7 +92,7 @@ class ShiftsService:
             self.db.commit()
 
             return ShiftRes(id=shift_id,
-                            start_time=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8'),
+                            start_time=timestamp,
                             end_time=None,
                             user_id=user.id,
                             shift_type_id=shift_type_id,
