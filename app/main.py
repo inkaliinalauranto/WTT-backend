@@ -28,7 +28,8 @@ app.include_router(roles.router)
 
 # Määritellän sallitut originit. Devausvaiheessa periaatteesa sallia kaikki allow_origins['*']
 origins = [
-    "http://localhost:5173",  # Frontendin origin
+    "http://localhost:5173"  # Frontendin origin
+    "https://localhost:5173" # Frontendin suojattu yhteys origin
     # Kaikki muut originit
 ]
 # Lisätään originit sallituiden listalle
@@ -39,7 +40,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers, or specify certain headers
 )
-
 
 # :D
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
