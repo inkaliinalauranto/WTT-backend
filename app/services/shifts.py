@@ -1,11 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 from fastapi import Depends, HTTPException
 from sqlalchemy import func, insert
 from app.db import DB
-from app.dtos.shifts import ShiftTime, StartShiftRes, EndShiftRes
-from app.models import Shift, ShiftType, User
-from app.utils.logged_in_user import LoggedInUser
+from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
+from app.models import Shift, ShiftType, User, Role
 
 
 class ShiftsService:
@@ -79,11 +78,11 @@ class ShiftsService:
             raise e
 
     # Leimataan id:n perusteella valitun käyttäjän työvuoro alkaneeksi:
-    def start_shift(self, user: User) -> StartShiftRes:
+    def start_shift(self, user: User) -> ShiftRes:
         try:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
 
-            add_query = insert(Shift).values(start_time=func.current_timestamp(),
+            add_query = insert(Shift).values(start_time=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8'),
                                              user_id=user.id,
                                              shift_type_id=shift_type_id)
 
@@ -91,32 +90,67 @@ class ShiftsService:
             shift_id = result.lastrowid
             self.db.commit()
 
-            return StartShiftRes(id=shift_id,
-                                 start_time=datetime.now().replace(microsecond=0),
-                                 user_id=user.id,
-                                 shift_type_id=shift_type_id)
+            return ShiftRes(id=shift_id,
+                            start_time=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8'),
+                            end_time=None,
+                            user_id=user.id,
+                            shift_type_id=shift_type_id,
+                            description=None)
 
         except Exception as e:
             self.db.rollback()
             raise e
 
     # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
-    def end_shift(self, shift_id: int, user: User) -> EndShiftRes:
+    def end_shift(self, shift_id: int, user: User) -> ShiftRes:
         try:
             shift = self.get_shift_by_id(shift_id)
 
             if shift.user_id != user.id:
                 raise HTTPException(status_code=401, detail="Unauthorized action")
 
-            shift.end_time = func.current_timestamp()
+            shift.end_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
 
             self.db.commit()
 
-            return EndShiftRes(id=shift.id,
-                               start_time=shift.start_time,
-                               end_time=datetime.now().replace(microsecond=0),
-                               user_id=shift.user_id,
-                               shift_type_id=shift.shift_type_id)
+            return ShiftRes(id=shift.id,
+                            start_time=shift.start_time,
+                            end_time=shift.end_time,
+                            user_id=shift.user_id,
+                            shift_type_id=shift.shift_type_id,
+                            description=shift.description)
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    # Lisätään työntekijälle planned-tyyppiä oleva työvuoro. Lisääjän roolin
+    # on oltava "manager".
+    def add_shift_by_user_id(self, employee_id: int, logged_in_user: User, req_body: AddShiftReq) -> ShiftRes:
+        try:
+            manager_role_id = self.db.query(Role.id).filter(Role.name == "manager").first()[0]
+
+            if logged_in_user.role_id != manager_role_id:
+                raise HTTPException(status_code=401, detail="Unauthorized action")
+
+            shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "planned").first()[0]
+
+            add_query = insert(Shift).values(start_time=req_body.start_time,
+                                             end_time=req_body.end_time,
+                                             user_id=employee_id,
+                                             shift_type_id=shift_type_id,
+                                             description=req_body.description)
+
+            result = self.db.execute(add_query)
+            shift_id = result.lastrowid
+            self.db.commit()
+
+            return ShiftRes(id=shift_id,
+                            start_time=req_body.start_time,
+                            end_time=req_body.end_time,
+                            user_id=employee_id,
+                            shift_type_id=shift_type_id,
+                            description=req_body.description)
 
         except Exception as e:
             self.db.rollback()
