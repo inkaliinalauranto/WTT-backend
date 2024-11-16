@@ -33,7 +33,7 @@ def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ):
 
 # Leimaa kirjautuneen työntekijän työvuoron alkaneeksi ja palauttaa leimatun
 # vuoron tiedot:
-@router.post("/shifts/start")
+@router.post("/shifts/start", status_code=201)
 def start_shift(logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
     started_shift: ShiftRes = service.start_shift(logged_in_user)
     return started_shift
@@ -48,7 +48,7 @@ def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) 
 
 # Lisää planned-tyyppisen työvuoron halutun työntekijän id:n perusteella, kun
 # käyttäjän rooli on manager:
-@router.post("/shifts/add/{employee_id}")
+@router.post("/shifts/add/{employee_id}", status_code=201)
 def add_shift(employee_id: int, service: ShiftsServ, logged_in_user: LoggedInUser, add_shift_req_body: AddShiftReq) -> ShiftRes:
     """Request bodyssa Avain-arvo-parin description-avaimella voi poistaa, jos kuvausta ei haluta lisätä."""
     added_shift: ShiftRes = service.add_shift_by_user_id(employee_id=employee_id,
