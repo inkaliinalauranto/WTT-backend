@@ -9,6 +9,6 @@ router = APIRouter(
 
 
 @router.delete("/{user_id}", status_code=204)
-async def delete_user_by_id(user_id, service: UsersServ, require_manager: RequireManager):
+def delete_user_by_id(user_id, service: UsersServ, require_manager: RequireManager):
     role = require_manager
-    await service.delete_user_by_id(user_id, role)
+    service.delete_user_by_id(user_id, role)

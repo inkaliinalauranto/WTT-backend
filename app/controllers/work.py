@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.dtos.shifts import UpdateReq, ShiftTime, StartShiftRes, EndShiftRes
+from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
 from app.services.shifts import ShiftsServ
 from app.utils.logged_in_user import LoggedInUser
 
@@ -33,15 +33,28 @@ def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ):
 
 # Leimaa kirjautuneen työntekijän työvuoron alkaneeksi ja palauttaa leimatun
 # vuoron tiedot:
-@router.post("/shifts/start")
-def start_shift(logged_in_user: LoggedInUser, service: ShiftsServ) -> StartShiftRes:
-    started_shift = service.start_shift(logged_in_user)
+@router.post("/shifts/start", status_code=201)
+def start_shift(logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
+    started_shift: ShiftRes = service.start_shift(logged_in_user)
     return started_shift
 
 
 # Leimaa valitun työvuoron päättyneeksi ja palauttaa leimatun vuoron tiedot.
-# Tässä logged_in_user ei toiminut.
 @router.patch("/shifts/end/{shift_id}")
-def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) -> EndShiftRes:
-    ended_shift = service.end_shift(shift_id, logged_in_user)
+def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
+    ended_shift: ShiftRes = service.end_shift(shift_id, logged_in_user)
     return ended_shift
+
+
+# Lisää planned-tyyppisen työvuoron halutun työntekijän id:n perusteella, kun
+# käyttäjän rooli on manager:
+@router.post("/shifts/add/{employee_id}", status_code=201)
+def add_shift(employee_id: int, service: ShiftsServ, logged_in_user: LoggedInUser, add_shift_req_body: AddShiftReq) -> ShiftRes:
+    """Request bodyssa Avain-arvo-parin description-avaimella voi poistaa, jos kuvausta ei haluta lisätä."""
+    added_shift: ShiftRes = service.add_shift_by_user_id(employee_id=employee_id,
+                                                         logged_in_user=logged_in_user,
+                                                         req_body=add_shift_req_body)
+    return added_shift
+
+
+

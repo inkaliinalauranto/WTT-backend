@@ -2,19 +2,13 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class EndShiftRes(BaseModel):
+class ShiftRes(BaseModel):
     id: int
     start_time: datetime
-    end_time: datetime
+    end_time: datetime | None
     user_id: int
     shift_type_id: int
-
-
-class StartShiftRes(BaseModel):
-    id: int
-    start_time: datetime
-    user_id: int
-    shift_type_id: int
+    description: str | None
 
 
 class ShiftTime(BaseModel):
@@ -31,3 +25,9 @@ class UpdateReq(BaseModel):
     user_id: int
     shift_type_id: int
     description: str
+
+
+class AddShiftReq(BaseModel):
+    start_time: datetime
+    end_time: datetime
+    description: str | None = None
