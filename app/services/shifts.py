@@ -1,0 +1,183 @@
+from datetime import datetime, timezone
+from typing import Annotated
+from fastapi import Depends, HTTPException
+from sqlalchemy import func, insert
+from app.db import DB
+from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
+from app.models import Shift, ShiftType, User, Role
+
+
+class ShiftsService:
+    def __init__(self, db):
+        self.db = db
+
+    def get_shift_by_id(self, shift_id):
+        """
+        SELECT * FROM shifts WHERE shift_id = {shift_id}
+        """
+        shift = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
+        return shift
+
+    # Haetaan id:n perusteella työntekijän kuluvan viikon työvuorot, jonka
+    # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
+    def get_shifts_by_employee_id(self, employee_id: int, shift_type: str) -> list[ShiftTime] | None:
+        shift_times = (
+            self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time,
+                          Shift.end_time)
+            .join(ShiftType, Shift.shift_type_id == ShiftType.id)
+            .join(User, Shift.user_id == User.id)
+            .filter(User.id == employee_id,
+                    ShiftType.type == shift_type,
+                    func.yearweek(Shift.start_time, 1) == func.yearweek(func.current_timestamp(), 1))).all()
+
+        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+        shift_dicts_list = [ShiftTime(id=shift.id,
+                                      weekday=weekdays[shift.weekday],
+                                      shift_type=shift.type,
+                                      start_time=shift.start_time,
+                                      end_time=shift.end_time)
+                            for shift in shift_times]
+
+        return shift_dicts_list
+
+    def delete_shift_by_id(self, shift_id):
+        try:
+            shift = self.get_shift_by_id(shift_id)
+
+            if shift is None:
+                raise HTTPException(status_code=404, detail="Shift not found")
+
+            self.db.delete(shift)
+
+            self.db.commit()
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    def update_shift_by_id(self, shift_id, updated_shift):
+        try:
+            shift = self.get_shift_by_id(shift_id)
+
+            if shift is None:
+                raise HTTPException(status_code=404, detail="Shift not found")
+
+            # Only update fields in updated_shift that are not None
+            for key, value in updated_shift.__dict__.items():
+                if value is not None:
+                    setattr(shift, key, value)
+
+            # Commit the changes and refresh the shift object
+            self.db.commit()
+            self.db.refresh(shift)
+
+            return shift
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    # Leimataan id:n perusteella valitun käyttäjän työvuoro alkaneeksi:
+    def start_shift(self, user: User) -> ShiftRes:
+        try:
+            shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
+            timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
+
+            add_query = insert(Shift).values(start_time=timestamp,
+                                             user_id=user.id,
+                                             shift_type_id=shift_type_id)
+
+            result = self.db.execute(add_query)
+            shift_id = result.lastrowid
+            self.db.commit()
+
+            return ShiftRes(id=shift_id,
+                            start_time=timestamp,
+                            end_time=None,
+                            user_id=user.id,
+                            shift_type_id=shift_type_id,
+                            description=None)
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    # Haetaan kirjautuneen työntekijän aloitetun työvuoron tiedot:
+    def get_started_shift(self, employee: User) -> ShiftRes | None:
+        # HOX! Vaikka editori herjaa, hakuehtoa ei kannata muuttaa muotoon
+        # "--Shift.end_time is None--", koska SQLAlchemy ei tunnista näin
+        # muotoiltua hakua:
+        started_shift = self.db.query(Shift).filter(Shift.user_id == employee.id, Shift.end_time == None).first()
+
+        if started_shift is not None:
+            started_shift = ShiftRes(id=started_shift.id,
+                                     start_time=started_shift.start_time,
+                                     end_time=started_shift.end_time,
+                                     user_id=started_shift.user_id,
+                                     shift_type_id=started_shift.shift_type_id,
+                                     description=started_shift.description)
+
+        return started_shift
+
+    # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
+    def end_shift(self, shift_id: int, user: User) -> ShiftRes:
+        try:
+            shift = self.get_shift_by_id(shift_id)
+
+            if shift.user_id != user.id:
+                raise HTTPException(status_code=401, detail="Unauthorized action")
+
+            shift.end_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
+
+            self.db.commit()
+
+            return ShiftRes(id=shift.id,
+                            start_time=shift.start_time,
+                            end_time=shift.end_time,
+                            user_id=shift.user_id,
+                            shift_type_id=shift.shift_type_id,
+                            description=shift.description)
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    # Lisätään työntekijälle planned-tyyppiä oleva työvuoro. Lisääjän roolin
+    # on oltava "manager".
+    def add_shift_by_user_id(self, employee_id: int, logged_in_user: User, req_body: AddShiftReq) -> ShiftRes:
+        try:
+            manager_role_id = self.db.query(Role.id).filter(Role.name == "manager").first()[0]
+
+            if logged_in_user.role_id != manager_role_id:
+                raise HTTPException(status_code=401, detail="Unauthorized action")
+
+            shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "planned").first()[0]
+
+            add_query = insert(Shift).values(start_time=req_body.start_time,
+                                             end_time=req_body.end_time,
+                                             user_id=employee_id,
+                                             shift_type_id=shift_type_id,
+                                             description=req_body.description)
+
+            result = self.db.execute(add_query)
+            shift_id = result.lastrowid
+            self.db.commit()
+
+            return ShiftRes(id=shift_id,
+                            start_time=req_body.start_time,
+                            end_time=req_body.end_time,
+                            user_id=employee_id,
+                            shift_type_id=shift_type_id,
+                            description=req_body.description)
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+
+def get_service(db: DB):
+    return ShiftsService(db)
+
+
+ShiftsServ = Annotated[ShiftsService, Depends(get_service)]

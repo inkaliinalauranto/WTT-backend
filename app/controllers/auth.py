@@ -57,12 +57,15 @@ async def login_openapi(
 async def login(req: LoginReq, service: AuthServ, token: Token) -> LoginRes:
     # Loginissa luodaan AuthUser ja Token, jotka palautetaan function suoriuduttua.
     user, access_token = service.login(req, token)
+
     return LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
+    #res = LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
+    #res.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)
+
+    #return res
 
 
 # Poistetaan jti tietokannasta uloskirjautuessa. Vaatii tokenin. 204 = No content
 @router.post("/logout", status_code=204)
 async def logout(logged_in_user: LoggedInUser, service: AuthServ):
     service.logout(logged_in_user)
-    # Ok, no content
-    return ""

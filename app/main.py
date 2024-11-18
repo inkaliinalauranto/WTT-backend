@@ -1,11 +1,14 @@
 import os
+import dotenv
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from app.controllers import test, auth, work
+from app.controllers import test, auth, shifts, users, roles, teams
 from app.db import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
 
+
+dotenv.load_dotenv()
 
 # Jos et halua luoda tauluja, ei jätä enviin esim. tyhjä string.
 if os.getenv("CREATE_DB_TABLES") == "true":
@@ -17,12 +20,16 @@ if os.getenv("CREATE_DB_TABLES") == "true":
 app = FastAPI()
 app.include_router(test.router)
 app.include_router(auth.router)
-app.include_router(work.router)
+app.include_router(shifts.router)
+app.include_router(users.router)
+app.include_router(teams.router)
+app.include_router(roles.router)
 
 
 # Määritellän sallitut originit. Devausvaiheessa periaatteesa sallia kaikki allow_origins['*']
 origins = [
-    "http://localhost:5173",  # Frontendin origin
+    "http://localhost:5173"  # Frontendin origin
+    "https://localhost:5173" # Frontendin suojattu yhteys origin
     # Kaikki muut originit
 ]
 # Lisätään originit sallituiden listalle
@@ -33,7 +40,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers, or specify certain headers
 )
-
 
 # :D
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)

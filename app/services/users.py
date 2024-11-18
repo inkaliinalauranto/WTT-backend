@@ -1,12 +1,10 @@
 from datetime import datetime, timezone
 from fastapi import Depends, HTTPException
-from sqlalchemy import text, func
 from typing import Annotated
 from app.db import DB
 from app import models
-from app.models import Shift, ShiftType, User
+from app.models import User, Role
 from app.services.auth import pwd_context
-from app.dtos.users import ShiftTime
 
 
 class UsersService:
@@ -14,42 +12,12 @@ class UsersService:
         self.db = db
 
     # Haetaan käyttäjä id:n perusteella:
-    async def get_by_id(self, user_id: int) -> User:
+    def get_by_id(self, user_id: int) -> User:
         """"
         SELECT * FROM users WHERE id = {user_id}
         """
         user = (self.db.query(User).filter(User.id == user_id)).first()
         return user
-
-    # Haetaan id:n perusteella käyttäjän kuluvan viikon suunnitellut työvuorot:
-    async def get_planned_shifts_by_id(self, user_id: int) -> list[ShiftTime] | None:
-        # Tarkistetaan ensin, löytyykö käyttäjää. get_by_id palauttaa Nonen,
-        # jos käyttäjää haetulla id:llä ei ole olemassa:
-        user = await self.get_by_id(user_id)
-
-        if user is None:
-            return None
-
-        """
-        SELECT s.start_time, s.end_time FROM shifts s
-        JOIN shift_types st ON s.shift_type_id = st.id
-        JOIN users u ON s.user_id = u.id
-        WHERE u.id = {user_id}
-        AND st.type = "planned"
-        AND YEARWEEK(s.start_time, 1) = YEARWEEK(CURRENT_TIMESTAMP(), 1)
-        """
-
-        shift_times = (self.db.query(Shift.start_time, Shift.end_time)
-                       .join(ShiftType, Shift.shift_type_id == ShiftType.id)
-                       .join(User, Shift.user_id == User.id)
-                       .filter(User.id == user_id,
-                               ShiftType.type == "planned",
-                               func.yearweek(Shift.start_time, 1) == func.yearweek(func.current_timestamp(), 1))).all()
-
-        planned_shift_dicts_list = [ShiftTime(start_time=shift.start_time, end_time=shift.end_time) for shift in
-                                    shift_times]
-
-        return planned_shift_dicts_list
 
     def create(self, user: models.User):
         try:
@@ -123,6 +91,27 @@ class UsersService:
               ).mappings().first()
               """
         return user
+    
+    def delete_user_by_id(self, user_id: int, role: Role):
+        try:
+            # Haetaan asyncisti id:n perusteella poistettava käyttäjä
+            user = self.get_by_id(user_id)
+
+            if user is None:
+                # Jos käyttäjää ei ole, palautetaan 404
+                raise HTTPException(status_code=404, detail="User not found")
+
+            if role.id == user.role_id:
+                # Jos käyttäjän rooli on sama kuin poistettavan rooli, tämä on kiellettyä.
+                raise HTTPException(status_code=401, detail="Unauthorized action")
+            
+            # Jos käyttäjä löytyy, poistetaan se
+            self.db.delete(user)
+            self.db.commit()
+            
+        except Exception as e:
+            self.db.rollback()
+            raise e
 
 
 # Initialisoidaan UsersRepository tietokantayhteyden kanssa

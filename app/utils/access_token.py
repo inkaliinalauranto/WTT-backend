@@ -16,7 +16,6 @@ class AccessToken:
         to_encode = data.copy()
 
         expire = datetime.now(timezone.utc) + data['exp']
-
         to_encode.update({"iss": "WorktimeTracker", "aud": "WorktimeTracker", "exp": expire})
         token = jwt.encode(to_encode, self.secret_key, algorithm='HS512')
 

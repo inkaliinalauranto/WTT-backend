@@ -43,11 +43,7 @@ class AuthService:
             # Verifioidaan käyttäjän kirjautumistiedot
             verified = self._authenticate_user(credentials)
             if not verified:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Could not validate credentials",
-                    headers={"WWW-Authenticate": "Bearer"}
-                )
+                raise HTTPException(status_code=401,detail="Could not validate credentials")
 
             # Generoidaan random access_jti, joka avulla luodaan token.
             access_jti = str(uuid.uuid4())

@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ```
 6. Buildaa docker:
 ```
-docker compose up --build
+docker compose up --build // Vaihtoehtoisesti käynnistä refreshaava ympäristö docker compose -f compose-dev.yaml up 
 ```
 7. FastApi, PhpMyadmin ja db pyörivät nyt localhostissa asettamissasi porteissa
 
@@ -29,4 +29,4 @@ docker compose up --build
 ```
 CREATE_DB_TABLES="true"
 ```
-9. Luo tietokantaan roolille tietueet "employee" ja "manager", sekä yksi organisaatio ja yksi team.
+9. Suorita sql_prepopulate insertit
