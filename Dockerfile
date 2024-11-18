@@ -1,11 +1,11 @@
 
 FROM python:3.10
 
-WORKDIR /code
+WORKDIR /app
 
-COPY . /code
+COPY . /app
 
-RUN chmod -R 755 /code
+RUN chmod -R 755 /app
 
 RUN pip install -r requirements.txt
 

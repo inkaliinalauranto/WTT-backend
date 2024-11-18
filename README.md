@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ```
 6. Buildaa docker:
 ```
-docker compose up --build
+docker compose up --build // Vaihtoehtoisesti käynnistä refreshaava ympäristö docker compose -f compose-dev.yaml up --build 
 ```
 7. FastApi, PhpMyadmin ja db pyörivät nyt localhostissa asettamissasi porteissa
 
