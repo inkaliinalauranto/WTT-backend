@@ -22,7 +22,8 @@ class ShiftsService:
     # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
     def get_shifts_by_employee_id(self, employee_id: int, shift_type: str) -> list[ShiftTime] | None:
         shift_times = (
-            self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time, Shift.end_time)
+            self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time,
+                          Shift.end_time)
             .join(ShiftType, Shift.shift_type_id == ShiftType.id)
             .join(User, Shift.user_id == User.id)
             .filter(User.id == employee_id,
@@ -31,14 +32,14 @@ class ShiftsService:
 
         weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-        planned_shift_dicts_list = [ShiftTime(id=shift.id,
-                                              weekday=weekdays[shift.weekday],
-                                              shift_type=shift.type,
-                                              start_time=shift.start_time,
-                                              end_time=shift.end_time)
-                                    for shift in shift_times]
+        shift_dicts_list = [ShiftTime(id=shift.id,
+                                      weekday=weekdays[shift.weekday],
+                                      shift_type=shift.type,
+                                      start_time=shift.start_time,
+                                      end_time=shift.end_time)
+                            for shift in shift_times]
 
-        return planned_shift_dicts_list
+        return shift_dicts_list
 
     def delete_shift_by_id(self, shift_id):
         try:

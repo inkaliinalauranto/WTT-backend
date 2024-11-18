@@ -29,8 +29,8 @@ class User(Base):
     access_jti = Column(String(512))
     created_at = Column(TIMESTAMP, nullable=False)
     deleted_at = Column(TIMESTAMP)
-    role_id = Column(Integer, ForeignKey("roles.id"))
-    team_id = Column(Integer, ForeignKey("teams.id"))
+    role_id = Column(Integer, ForeignKey(column="roles.id", ondelete="CASCADE", onupdate="CASCADE"))
+    team_id = Column(Integer, ForeignKey(column="teams.id", ondelete="CASCADE", onupdate="CASCADE"))
 
 
 class Role(Base):
@@ -45,7 +45,7 @@ class Team(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(45), nullable=False, unique=True)
-    organization_id = Column(Integer, ForeignKey("organizations.id"))
+    organization_id = Column(Integer, ForeignKey(column="organizations.id", ondelete="CASCADE", onupdate="CASCADE"))
 
 
 class Organization(Base):
@@ -68,6 +68,6 @@ class Shift(Base):
     id = Column(Integer, primary_key=True, index=True)
     start_time = Column(TIMESTAMP, nullable=False)
     end_time = Column(TIMESTAMP, nullable=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    shift_type_id = Column(Integer, ForeignKey("shift_types.id"))
+    user_id = Column(Integer, ForeignKey(column="users.id", ondelete="CASCADE", onupdate="CASCADE"))
+    shift_type_id = Column(Integer, ForeignKey(column="shift_types.id", ondelete="CASCADE", onupdate="CASCADE"))
     description = Column(String(255), nullable=True)
