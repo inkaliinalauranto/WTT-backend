@@ -103,6 +103,23 @@ class ShiftsService:
             self.db.rollback()
             raise e
 
+    # Haetaan kirjautuneen työntekijän aloitetun työvuoron tiedot:
+    def get_started_shift(self, employee: User) -> ShiftRes | None:
+        # HOX! Vaikka editori herjaa, hakuehtoa ei kannata muuttaa muotoon
+        # "--Shift.end_time is None--", koska SQLAlchemy ei tunnista näin
+        # muotoiltua hakua:
+        started_shift = self.db.query(Shift).filter(Shift.user_id == employee.id, Shift.end_time == None).first()
+
+        if started_shift is not None:
+            started_shift = ShiftRes(id=started_shift.id,
+                                     start_time=started_shift.start_time,
+                                     end_time=started_shift.end_time,
+                                     user_id=started_shift.user_id,
+                                     shift_type_id=started_shift.shift_type_id,
+                                     description=started_shift.description)
+
+        return started_shift
+
     # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
     def end_shift(self, shift_id: int, user: User) -> ShiftRes:
         try:
