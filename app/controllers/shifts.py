@@ -39,6 +39,12 @@ def start_shift(logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
     return started_shift
 
 
+# Haetaan kirjautuneen työntekijän aloitetun työvuoron tiedot:
+@router.get("/started/{employee_id}")
+def get_started_shift_by_employee_id(logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes | None:
+    return service.get_started_shift(logged_in_user)
+
+
 # Leimaa valitun työvuoron päättyneeksi ja palauttaa leimatun vuoron tiedot.
 @router.patch("/end/{shift_id}")
 def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
