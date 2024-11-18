@@ -58,10 +58,11 @@ async def login(req: LoginReq, service: AuthServ, token: Token) -> LoginRes:
     # Loginissa luodaan AuthUser ja Token, jotka palautetaan function suoriuduttua.
     user, access_token = service.login(req, token)
 
-    res = LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
-    res.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)
+    return LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
+    #res = LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
+    #res.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)
 
-    return res
+    #return res
 
 
 # Poistetaan jti tietokannasta uloskirjautuessa. Vaatii tokenin. 204 = No content
