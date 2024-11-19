@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app import models
 from app.utils.logged_in_user import LoggedInUser
 from app.utils.access_token import Token
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from app.dtos.auth import LoginRes, AuthUser, LoginReq, RegisterReq
 from app.services.users import UsersServ
 from app.services.auth import AuthServ
@@ -45,24 +45,24 @@ async def create_new_user(req: RegisterReq, service: UsersServ) -> AuthUser:
 # Login openapin docsin kaavakkeella
 @router.post("/login/openapi")
 async def login_openapi(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()], service: AuthServ, token: Token
+        form_data: Annotated[OAuth2PasswordRequestForm, Depends()], service: AuthServ, token: Token, response: Response
 ) -> LoginRes:
-    # Loginissa luodaan AuthUser ja Token, jotka palautetaan function suoriuduttua.
     user, access_token = service.login(form_data, token)
+    # Asetetaan responseen cookie mukaan, jottei sitä tarvitse tehdä frontissa.
+    response.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)
+    # Loginissa luodaan AuthUser ja Token, jotka palautetaan function suoriuduttua.
     return LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
 
 
 # Normaali login request
 @router.post("/login")
-async def login(req: LoginReq, service: AuthServ, token: Token) -> LoginRes:
-    # Loginissa luodaan AuthUser ja Token, jotka palautetaan function suoriuduttua.
+async def login(req: LoginReq, service: AuthServ, token: Token, response: Response) -> LoginRes:
     user, access_token = service.login(req, token)
-
+    # Asetetaan responseen cookie mukaan, jottei sitä tarvitse tehdä frontissa.
+    # response tulee fastapin Response muuttujasta
+    response.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)
+    # Loginissa luodaan AuthUser ja Token, jotka palautetaan function suoriuduttua.
     return LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
-    #res = LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
-    #res.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)
-
-    #return res
 
 
 # Poistetaan jti tietokannasta uloskirjautuessa. Vaatii tokenin. 204 = No content
