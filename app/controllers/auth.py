@@ -49,7 +49,7 @@ async def login_openapi(
 ) -> LoginRes:
     user, access_token = service.login(form_data, token)
     # Asetetaan responseen cookie mukaan, jottei sitä tarvitse tehdä frontissa.
-    response.set_cookie("wtt-token", access_token, httponly=True, secure=True)
+    response.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)
     # Loginissa luodaan AuthUser ja Token, jotka palautetaan function suoriuduttua.
     return LoginRes(access_token=access_token, auth_user=map_to_auth_user(user))
 
