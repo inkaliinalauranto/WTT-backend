@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 from passlib.context import CryptContext
 from app import models
-from app.dtos.auth import LoginReq
+from app.dtos.auth import LoginReq, AuthUser
 from app.db import DB
 from app.utils.access_token import Token
 
@@ -63,8 +63,8 @@ class AuthService:
 
             self.db.commit()
 
-            # Palautetaan User ja generoitu token.
-            return user, access_token
+            # Palautetaan AuthUser ja generoitu token.
+            return AuthUser.model_validate(user), access_token
 
         except Exception as e:
             self.db.rollback()

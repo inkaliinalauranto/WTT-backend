@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import Depends, HTTPException
 from typing import Annotated
 from app.db import DB
-from app import models
+from app.dtos.auth import AuthUser
 from app.models import User, Role
 from app.services.auth import pwd_context
 
@@ -19,7 +19,19 @@ class UsersService:
         user = (self.db.query(User).filter(User.id == user_id)).first()
         return user
 
-    def create(self, user: models.User):
+
+    def get_all_by_team_id(self, team_id:int) -> list[AuthUser]:
+        employee_role = self.db.query(Role).filter(Role.name == "employee").first()
+        users = self.db.query(User).filter(User.team_id == team_id, User.role_id == employee_role.id).all()
+
+        users_list: list[AuthUser] = []
+        for user in users:
+            users_list.append(AuthUser.model_validate(user))
+
+        return users_list
+
+
+    def create(self, user: User):
         try:
             # Löytyykö role tietokannasta
             """
@@ -29,7 +41,7 @@ class UsersService:
             ).mappings().first()
             """
             # .query(mitä palautetaan).filter(minkä perusteella).mitkärivit()
-            role = self.db.query(models.Role).filter(models.Role.id == user.role_id).first()
+            role = self.db.query(Role).filter(Role.id == user.role_id).first()
 
             if role is None:
                 raise HTTPException(status_code=404, detail="Role not found")
@@ -43,7 +55,7 @@ class UsersService:
                 {"username": user.username}
             ).mappings().first()
             """
-            username = self.db.query(models.User.username).filter(models.User.username == user.username).first()
+            username = self.db.query(User.username).filter(User.username == user.username).first()
 
             if username is not None:
                 raise HTTPException(status_code=409, detail="Username is taken")
@@ -83,7 +95,7 @@ class UsersService:
 
     def get_user_by_access_jti(self, access_jti):
         # Haetaan user access_tokenin perusteella.
-        user = self.db.query(models.User).filter(models.User.access_jti == access_jti).first()
+        user = self.db.query(User).filter(User.access_jti == access_jti).first()
         """
               user = self.db.execute(
                   text("SELECT * FROM users WHERE access_jti = :sub"),
@@ -92,7 +104,8 @@ class UsersService:
               """
         return user
     
-    def delete_user_by_id(self, user_id: int, role: Role):
+
+    def delete_user_by_id(self, user_id: int, manager:User):
         try:
             # Haetaan asyncisti id:n perusteella poistettava käyttäjä
             user = self.get_by_id(user_id)
@@ -101,9 +114,9 @@ class UsersService:
                 # Jos käyttäjää ei ole, palautetaan 404
                 raise HTTPException(status_code=404, detail="User not found")
 
-            if role.id == user.role_id:
+            if manager.role_id == user.role_id:
                 # Jos käyttäjän rooli on sama kuin poistettavan rooli, tämä on kiellettyä.
-                raise HTTPException(status_code=401, detail="Unauthorized action")
+                raise HTTPException(status_code=403, detail="Unauthorized action")
             
             # Jos käyttäjä löytyy, poistetaan se
             self.db.delete(user)

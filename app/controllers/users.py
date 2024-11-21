@@ -1,6 +1,8 @@
 from fastapi import APIRouter
+from app.dtos.auth import AuthUser
 from app.services.users import UsersServ
 from app.utils.require_user_role import RequireManager
+
 
 router = APIRouter(
     prefix='/api/users',
@@ -9,6 +11,12 @@ router = APIRouter(
 
 
 @router.delete("/{user_id}", status_code=204)
-def delete_user_by_id(user_id, service: UsersServ, require_manager: RequireManager):
-    role = require_manager
-    service.delete_user_by_id(user_id, role)
+def delete_user_by_id(user_id, service: UsersServ, manager: RequireManager):
+    if manager is not None:
+        service.delete_user_by_id(user_id, manager)
+
+
+@router.get("/manager/{team_id}")
+async def get_all_employees_by_manager_team_id(service: UsersServ, manager: RequireManager) -> list[AuthUser]:
+    if manager is not None:
+        return service.get_all_by_team_id(manager.team_id)
