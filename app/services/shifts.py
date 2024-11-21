@@ -175,32 +175,6 @@ class ShiftsService:
             self.db.rollback()
             raise e
 
-    # Lisätään työntekijälle planned-tyyppiä oleva työvuoro. Lisääjän roolin
-    # on oltava "manager".
-    def add_shift_by_user_id(self, employee_id: int, req_body: AddShiftReq) -> ShiftRes:
-        try:
-            shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "planned").first()[0]
-
-            add_query = insert(Shift).values(start_time=req_body.start_time,
-                                             end_time=req_body.end_time,
-                                             user_id=employee_id,
-                                             shift_type_id=shift_type_id,
-                                             description=req_body.description)
-
-            result = self.db.execute(add_query)
-            shift_id = result.lastrowid
-            self.db.commit()
-
-            return ShiftRes(id=shift_id,
-                            start_time=req_body.start_time,
-                            end_time=req_body.end_time,
-                            user_id=employee_id,
-                            shift_type_id=shift_type_id,
-                            description=req_body.description)
-
-        except Exception as e:
-            self.db.rollback()
-            raise e
 
     def get_shift_today_by_id(self, employee_id: int) -> list[ShiftRes]:
         today = datetime.now(timezone.utc).date()

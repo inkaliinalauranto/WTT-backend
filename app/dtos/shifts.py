@@ -10,6 +10,9 @@ class ShiftRes(BaseModel):
     shift_type_id: int
     description: str | None
 
+    class Config:
+        from_attributes = True
+
 
 class ShiftTime(BaseModel):
     id: int

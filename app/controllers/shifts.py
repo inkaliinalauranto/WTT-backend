@@ -2,6 +2,8 @@ from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
 from app.services.shifts import ShiftsServ
 from app.utils.logged_in_user import LoggedInUser
+from app.utils.require_user_role import RequireManager
+
 
 router = APIRouter(
     prefix='/api/shifts',
@@ -55,12 +57,14 @@ def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) 
 # Lisää planned-tyyppisen työvuoron halutun työntekijän id:n perusteella, kun
 # käyttäjän rooli on manager:
 @router.post("/add/{employee_id}", status_code=201)
-def add_shift(employee_id: int, service: ShiftsServ, logged_in_user: LoggedInUser, add_shift_req_body: AddShiftReq) -> ShiftRes:
-    """Request bodyssa Avain-arvo-parin description-avaimella voi poistaa, jos kuvausta ei haluta lisätä."""
-    added_shift: ShiftRes = service.add_shift_by_user_id(employee_id=employee_id,
-                                                         logged_in_user=logged_in_user,
-                                                         req_body=add_shift_req_body)
-    return added_shift
+def add_shift(employee_id: int, service: ShiftsServ, manager: RequireManager, add_shift_req_body: AddShiftReq) -> ShiftRes:
+    if manager is not None:
+        """Request bodyssa Avain-arvo-parin description-avaimella voi poistaa, jos kuvausta ei haluta lisätä."""
+        return service.add_shift_by_user_id(employee_id, add_shift_req_body)
 
 
+@router.get("/today/{employee_id}")
+def get_shift_today_by_employee_id(employee_id: int, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
+    if user is not None:
+        return service.get_shift_today_by_id(employee_id)
 
