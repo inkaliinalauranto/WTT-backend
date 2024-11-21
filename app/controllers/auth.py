@@ -48,10 +48,12 @@ async def login_openapi(
     return LoginRes(access_token=access_token, auth_user=auth_user)
 
 
+
 # Normaali login request
 @router.post("/login")
 async def login(req: LoginReq, service: AuthServ, token: Token, response: Response) -> LoginRes:
     auth_user, access_token = service.login(req, token)
+
     # Asetetaan responseen cookie mukaan, jottei sitä tarvitse tehdä frontissa.
     # response tulee fastapin Response muuttujasta
     response.set_cookie("wtt-cookie", access_token, httponly=True, secure=True)

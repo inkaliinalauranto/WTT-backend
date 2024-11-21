@@ -104,6 +104,7 @@ class UsersService:
               """
         return user
     
+
     def delete_user_by_id(self, user_id: int, manager:User):
         try:
             # Haetaan asyncisti id:n perusteella poistettava käyttäjä
