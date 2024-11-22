@@ -145,13 +145,8 @@ class ShiftsService:
 
     # Lisätään työntekijälle planned-tyyppiä oleva työvuoro. Lisääjän roolin
     # on oltava "manager".
-    def add_shift_by_user_id(self, employee_id: int, logged_in_user: User, req_body: AddShiftReq) -> ShiftRes:
+    def add_shift_by_user_id(self, employee_id: int, req_body: AddShiftReq) -> ShiftRes:
         try:
-            manager_role_id = self.db.query(Role.id).filter(Role.name == "manager").first()[0]
-
-            if logged_in_user.role_id != manager_role_id:
-                raise HTTPException(status_code=401, detail="Unauthorized action")
-
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "planned").first()[0]
 
             add_query = insert(Shift).values(start_time=req_body.start_time,
