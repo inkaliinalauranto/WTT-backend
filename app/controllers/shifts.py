@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
 from app.services.shifts import ShiftsServ
@@ -13,11 +12,11 @@ router = APIRouter(
 )
 
 
-# Palauttaa valitun työntekijän kuluvan viikon työvuorot, joiden tyypin
-# määrittää shift_type-parametri. Ei käytetä LoggedInUser-mallia, koska
+# Palauttaa valitun työntekijän työvuorot, joiden tyypin määrittää
+# shift_type-parametri. Ei käytetä LoggedInUser-mallia, koska
 # myös esimiehen on pystyttävä tarkastelemaan alaisensa työvuoroja:
 @router.get("/week/{employee_id}/{shift_type}")
-def get_shifts_of_week_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ) -> list[ShiftTime]:
+def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ) -> list[ShiftTime]:
     planned_shift_dicts_list = service.get_shifts_by_employee_id(employee_id, shift_type)
 
     return planned_shift_dicts_list
