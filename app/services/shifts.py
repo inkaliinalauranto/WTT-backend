@@ -174,18 +174,19 @@ class ShiftsService:
     def get_shift_today_by_id(self, employee_id: int) -> list[ShiftRes]:
         today = datetime.now(timezone.utc).date()
 
-        # Tuodaan varalta myös edeltävän päivän data,
+        # Tuodaan varalta myös edeltävän ja tulevan päivän data,
         # jos tarvitsee tarkastella vuorokauden vaihdoksella olevia työvuoroja
         yesterday = today - timedelta(days=1)
-
+        tomorrow = today + timedelta(days=1)
 
         # Käytetään sqlalchemyn cast() funktiota Daten filteröinnissä, jotta huomioidaan vain päivämäärä,
         # koska halutaan hakea kaikki vuorot kyseisenä päivänä riippumatta kellonajasta
         # Tässä on käytetty chatgptä
         shift_list = (self.db.query(Shift)
                       .filter(Shift.user_id == employee_id,
-                              or_(cast(Shift.start_time, Date) == today,
-                                  cast(Shift.start_time, Date) == yesterday)
+                              or_(cast(Shift.start_time, Date) == yesterday,
+                                  cast(Shift.start_time, Date) == today,
+                                  cast(Shift.start_time, Date) == tomorrow)
                               ).all())
 
         # Täältä palautetaan vain data. Listat järjestellään muualla
@@ -196,6 +197,31 @@ class ShiftsService:
 
         # Halutaan palauttaa myös potentiaalisesti tyhjä lista
         return shifts
+
+
+    def get_shift_by_date_by_id(self, employee_id: int, date: datetime) -> list[ShiftRes]:
+        # Tänne haetaan päivää edeltävä ja päivää seuraavat datat, jotta vältytään vuorokauden vaihdoksessa
+        # olevat ongelmat.
+        date = date.date()
+        day_after = date + timedelta(days=1)
+        day_before = date - timedelta(days=1)
+
+        shift_list = (self.db.query(Shift)
+                      .filter(Shift.user_id == employee_id,
+                              or_(cast(Shift.start_time, Date) == day_before,
+                                  cast(Shift.start_time, Date) == date,
+                                  cast(Shift.start_time, Date) == day_after)
+                              ).all())
+
+        # Täältä palautetaan vain data. Listat järjestellään muualla
+        shifts: list[ShiftRes] = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
+
+        # Halutaan palauttaa myös potentiaalisesti tyhjä lista
+        return shifts
+
+
 
 
 def get_service(db: DB):
