@@ -1,7 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Annotated
 from fastapi import Depends, HTTPException
-from sqlalchemy import func, insert, cast, Date
+from sqlalchemy import func, insert, cast, Date, or_
 from app.db import DB
 from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
 from app.models import Shift, ShiftType, User, Role
@@ -174,18 +174,25 @@ class ShiftsService:
     def get_shift_today_by_id(self, employee_id: int) -> list[ShiftRes]:
         today = datetime.now(timezone.utc).date()
 
+        # Tuodaan varalta myös edeltävän päivän data,
+        # jos tarvitsee tarkastella vuorokauden vaihdoksella olevia työvuoroja
+        yesterday = today - timedelta(days=1)
+
+
         # Käytetään sqlalchemyn cast() funktiota Daten filteröinnissä, jotta huomioidaan vain päivämäärä,
         # koska halutaan hakea kaikki vuorot kyseisenä päivänä riippumatta kellonajasta
+        # Tässä on käytetty chatgptä
         shift_list = (self.db.query(Shift)
                       .filter(Shift.user_id == employee_id,
-                              cast(Shift.start_time, Date) == today)
-                      .order_by(Shift.start_time)
-                      .all())
+                              or_(cast(Shift.start_time, Date) == today,
+                                  cast(Shift.start_time, Date) == yesterday)
+                              ).all())
 
-        # Lista on järjestetty vanhimmasta uusimpaan vuoroon.
+        # Täältä palautetaan vain data. Listat järjestellään muualla
         shifts: list[ShiftRes] = []
         for shift in shift_list:
             shifts.append(ShiftRes.model_validate(shift))
+
 
         # Halutaan palauttaa myös potentiaalisesti tyhjä lista
         return shifts
