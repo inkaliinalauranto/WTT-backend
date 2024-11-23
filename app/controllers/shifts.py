@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
 from app.services.shifts import ShiftsServ
@@ -68,3 +70,8 @@ def get_shift_today_by_employee_id(employee_id: int, service: ShiftsServ, user:L
     if user is not None:
         return service.get_shift_today_by_id(employee_id)
 
+
+@router.get("/{date}/{employee_id}")
+def get_shift_today_by_employee_id(employee_id: int, date: datetime, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
+    if user is not None:
+        return service.get_shift_by_date_by_id(employee_id, date)
