@@ -23,12 +23,11 @@ class ShiftsService:
     def get_shifts_by_employee_id(self, employee_id: int, shift_type: str) -> list[ShiftTime] | None:
         shift_times = (
             self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time,
-                          Shift.end_time)
+                          Shift.end_time, Shift.description)
             .join(ShiftType, Shift.shift_type_id == ShiftType.id)
             .join(User, Shift.user_id == User.id)
             .filter(User.id == employee_id,
-                    ShiftType.type == shift_type,
-                    func.yearweek(Shift.start_time, 1) == func.yearweek(func.current_timestamp(), 1))).all()
+                    ShiftType.type == shift_type)).all()
 
         weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -36,7 +35,8 @@ class ShiftsService:
                                       weekday=weekdays[shift.weekday],
                                       shift_type=shift.type,
                                       start_time=shift.start_time,
-                                      end_time=shift.end_time)
+                                      end_time=shift.end_time,
+                                      description=shift.description)
                             for shift in shift_times]
 
         return shift_dicts_list

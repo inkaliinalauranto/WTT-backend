@@ -20,6 +20,7 @@ class ShiftTime(BaseModel):
     shift_type: str
     start_time: datetime
     end_time: datetime | None
+    description: str | None
 
 
 class UpdateReq(BaseModel):
