@@ -107,7 +107,7 @@ class UsersService:
 
     def delete_user_by_id(self, user_id: int, manager:User):
         try:
-            # Haetaan asyncisti id:n perusteella poistettava käyttäjä
+            # Haetaan id:n perusteella poistettava käyttäjä
             user = self.get_by_id(user_id)
 
             if user is None:
@@ -115,7 +115,7 @@ class UsersService:
                 raise HTTPException(status_code=404, detail="User not found")
 
             if manager.role_id == user.role_id:
-                # Jos käyttäjän rooli on sama kuin poistettavan rooli, tämä on kiellettyä.
+                # Jos käyttäjän rooli on sama kuin poistettavan rooli (manager yrittää poistaa toisen managerin), tämä on kiellettyä.
                 raise HTTPException(status_code=403, detail="Unauthorized action")
             
             # Jos käyttäjä löytyy, poistetaan se

@@ -10,6 +10,6 @@ router = APIRouter(
 
 
 @router.get("/{team_id}")
-async def get_role_by_id(team_id: int, service: TeamsServ) -> Team:
+async def get_team_by_id(team_id: int, service: TeamsServ) -> Team:
     team = service.get_by_id(team_id)
     return team
