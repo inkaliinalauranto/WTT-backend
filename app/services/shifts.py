@@ -171,7 +171,7 @@ class ShiftsService:
             raise e
 
 
-    def get_shift_today_by_id(self, employee_id: int) -> list[ShiftRes]:
+    def get_shifts_today_by_id(self, employee_id: int) -> list[ShiftRes]:
         today = datetime.now(timezone.utc).date()
 
         # Tuodaan varalta myös edeltävän ja tulevan päivän data,
@@ -199,7 +199,7 @@ class ShiftsService:
         return shifts
 
 
-    def get_shift_by_date_by_id(self, employee_id: int, date: datetime) -> list[ShiftRes]:
+    def get_shifts_by_date_by_id(self, employee_id: int, date: datetime) -> list[ShiftRes]:
         # Tänne haetaan päivää edeltävä ja päivää seuraavat datat, jotta vältytään vuorokauden vaihdoksessa
         # olevat ongelmat.
         date = date.date()
@@ -222,6 +222,25 @@ class ShiftsService:
         return shifts
 
 
+    def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> list[ShiftRes]:
+        # Haetaan 2kuukauden aikaväliltä kaikki työvuorot.
+        today = datetime.now(timezone.utc).date()
+        month_from_date = today + timedelta(days=days)
+        month_past_date = today - timedelta(days=days)
+
+        # Haetaan kaikki työvuorot +- 30päivää tästä päivästä alkaen
+        shift_list = (self.db.query(Shift)
+                      .filter(Shift.user_id == employee_id,
+                              cast(Shift.start_time, Date).between(month_past_date, month_from_date)
+                              ).all())
+
+        # Täältä palautetaan vain data. Listat järjestellään muualla
+        shifts: list[ShiftRes] = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
+
+        # Halutaan palauttaa myös potentiaalisesti tyhjä lista
+        return shifts
 
 
 def get_service(db: DB):

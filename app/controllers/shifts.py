@@ -66,12 +66,19 @@ def add_shift(employee_id: int, service: ShiftsServ, manager: RequireManager, ad
 
 
 @router.get("/today/{employee_id}")
-def get_shift_today_by_employee_id(employee_id: int, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
+def get_shifts_today_by_employee_id(employee_id: int, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
     if user is not None:
-        return service.get_shift_today_by_id(employee_id)
+        return service.get_shifts_today_by_id(employee_id)
 
 
 @router.get("/{date}/{employee_id}")
-def get_shift_today_by_employee_id(employee_id: int, date: datetime, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
+def get_shifts_today_by_employee_id(employee_id: int, date: datetime, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
     if user is not None:
-        return service.get_shift_by_date_by_id(employee_id, date)
+        return service.get_shifts_by_date_by_id(employee_id, date)
+
+
+# Haetaan kaikki työvuorot +- days päivää from today päivästä lähtien.
+@router.get("/today/{employee_id}/tolerance/{days}")
+def get_shifts_with_days_tolerance_from_today_by_employee_id(employee_id: int, days: int, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
+    if user is not None:
+        return service.get_shifts_with_days_tolerance_from_today_by_id(employee_id, days)
