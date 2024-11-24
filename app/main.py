@@ -2,7 +2,7 @@ import os
 import dotenv
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from app.controllers import test, auth, shifts, users, roles, teams
+from app.controllers import test, auth, shifts, users, roles, teams, organizations
 from app.db import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +24,7 @@ app.include_router(shifts.router)
 app.include_router(users.router)
 app.include_router(teams.router)
 app.include_router(roles.router)
+app.include_router(organizations.router)
 
 
 # Määritellän sallitut originit. Devausvaiheessa periaatteesa sallia kaikki allow_origins['*']

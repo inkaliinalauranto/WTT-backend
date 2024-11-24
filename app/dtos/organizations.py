@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
 
-class Team(BaseModel):
+class Organization(BaseModel):
     id: int
     name: str
-    organization_id: int
