@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 from fastapi import Depends, HTTPException
 from typing import Annotated
-from app.db import DB
+from app.db_mysql import DB
 from app.dtos.auth import AuthUser
 from app.models import User, Role
-from app.services.auth import pwd_context
+from app.services.auth_sqlalchemy import pwd_context
 
 
 class UsersService:

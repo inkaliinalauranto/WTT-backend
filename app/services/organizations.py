@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import Depends
-from app.db import DB
+from app.db_mysql import DB
 from app.models import Organization
 
 

@@ -1,4 +1,4 @@
-from app.db import DB
+from app.db_mysql import DB
 from app.models import Test
 
 

@@ -2,8 +2,8 @@ from datetime import datetime
 from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
 from app.services.shifts import ShiftsServ
-from app.utils.logged_in_user import LoggedInUser
-from app.utils.require_user_role import RequireManager
+from app.dependencies.logged_in_user import LoggedInUser
+from app.dependencies.require_user_role import RequireManager
 
 
 router = APIRouter(

@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Annotated
 from fastapi import Depends, HTTPException
 from sqlalchemy import func, insert, cast, Date, or_
-from app.db import DB
+from app.db_mysql import DB
 from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
 from app.models import Shift, ShiftType, User, Role
 

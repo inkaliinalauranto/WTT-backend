@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from app.services.test import get_test
 from app.dtos.test import Test
-from app.db import DB
+from app.db_mysql import DB
 
 
 router = APIRouter(

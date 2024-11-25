@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from app.dtos.auth import AuthUser
 from app.services.users import UsersServ
-from app.utils.require_user_role import RequireManager
+from app.dependencies.require_user_role import RequireManager
 
 
 router = APIRouter(
