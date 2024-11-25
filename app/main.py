@@ -1,9 +1,10 @@
 import os
 import dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from app.controllers import test, auth, shifts, users, roles, teams, organizations
-from app.db import engine
+from app.custom_exceptions import authorization
+from app.db_mysql import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -41,6 +42,22 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers, or specify certain headers
 )
+
+
+# Custom exceptions handlers
+@app.exception_handler(authorization.CredentialsException)
+async def handle_credentials_exception(request, exception):
+    raise HTTPException(detail=str(exception), status_code=401)
+
+@app.exception_handler(authorization.UnauthorizedAccessException)
+async def handle_credentials_exception(request, exception):
+    raise HTTPException(detail=str(exception), status_code=401)
+
+@app.exception_handler(authorization.UnauthorizedActionException)
+async def handle_credentials_exception(request, exception):
+    raise HTTPException(detail=str(exception), status_code=403)
+
+
 
 # :D
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
