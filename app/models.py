@@ -1,4 +1,4 @@
-from sqlalchemy import TIMESTAMP, Column, DateTime, Integer, String, ForeignKey
+from sqlalchemy import TIMESTAMP, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base
 
 

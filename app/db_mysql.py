@@ -1,10 +1,10 @@
 import os
 from typing import Annotated
-
 import dotenv
 from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+
 
 dotenv.load_dotenv()
 
