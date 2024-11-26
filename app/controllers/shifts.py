@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import List
 from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
-from app.services.shifts import ShiftsServ
+from app.services.sqlalchemy.shifts_sqlalchemy import ShiftsServ
 from app.dependencies.logged_in_user import LoggedInUser
 from app.dependencies.require_user_role import RequireManager
 
@@ -16,10 +17,20 @@ router = APIRouter(
 # shift_type-parametri. Ei käytetä LoggedInUser-mallia, koska
 # myös esimiehen on pystyttävä tarkastelemaan alaisensa työvuoroja:
 @router.get("/week/{employee_id}/{shift_type}")
-def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ) -> list[ShiftTime]:
-    planned_shift_dicts_list = service.get_shifts_by_employee_id(employee_id, shift_type)
+def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ) -> List[ShiftTime]:
+    shift_times = service.get_shifts_by_employee_id(employee_id, shift_type)
 
-    return planned_shift_dicts_list
+    weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    shift_dicts_list = [ShiftTime(id=shift.id,
+                                  weekday=weekdays[shift.weekday],
+                                  shift_type=shift.type,
+                                  start_time=shift.start_time,
+                                  end_time=shift.end_time,
+                                  description=shift.description)
+                        for shift in shift_times]
+
+    return shift_dicts_list
 
 
 @router.delete("/{shift_id}")
@@ -28,18 +39,17 @@ def delete_shift_by_id(shift_id, service: ShiftsServ):
 
 
 @router.patch("/{shift_id}")
-def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ):
+def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ) -> ShiftRes:
     shift = service.update_shift_by_id(shift_id, updated_shift)
-
-    return shift
+    return ShiftRes.model_validate(shift)
 
 
 # Leimaa kirjautuneen työntekijän työvuoron alkaneeksi ja palauttaa leimatun
 # vuoron tiedot:
 @router.post("/start", status_code=201)
 def start_shift(logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
-    started_shift: ShiftRes = service.start_shift(logged_in_user)
-    return started_shift
+    started_shift = service.start_shift(logged_in_user)
+    return ShiftRes.model_validate(started_shift)
 
 
 # Haetaan kirjautuneen työntekijän aloitetun työvuoron tiedot:

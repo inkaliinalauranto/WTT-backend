@@ -2,12 +2,13 @@ from datetime import datetime, timezone, timedelta
 from typing import Annotated, List
 from fastapi import Depends, HTTPException
 from sqlalchemy import func, insert, cast, Date, or_
+from app.custom_exceptions.notfound import NotFoundException
 from app.db_mysql import DB
 from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
-from app.models import Shift, ShiftType, User, Role
+from app.models import Shift, ShiftType, User
 
 
-class ShiftsService:
+class ShiftsServiceSqlAlchemy:
     def __init__(self, db):
         self.db = db
 
@@ -16,11 +17,15 @@ class ShiftsService:
         SELECT * FROM shifts WHERE shift_id = {shift_id}
         """
         shift = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
+
+        if shift is None:
+            raise NotFoundException(message="User not found")
+
         return shift
 
     # Haetaan id:n perusteella työntekijän kuluvan viikon työvuorot, jonka
     # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
-    def get_shifts_by_employee_id(self, employee_id: int, shift_type: str) -> list[ShiftTime] | None:
+    def get_shifts_by_employee_id(self, employee_id: int, shift_type: str) -> List[ShiftTime] | None:
         shift_times = (
             self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time,
                           Shift.end_time, Shift.description)
@@ -29,27 +34,12 @@ class ShiftsService:
             .filter(User.id == employee_id,
                     ShiftType.type == shift_type)).all()
 
-        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-
-        shift_dicts_list = [ShiftTime(id=shift.id,
-                                      weekday=weekdays[shift.weekday],
-                                      shift_type=shift.type,
-                                      start_time=shift.start_time,
-                                      end_time=shift.end_time,
-                                      description=shift.description)
-                            for shift in shift_times]
-
-        return shift_dicts_list
+        return shift_times
 
     def delete_shift_by_id(self, shift_id):
         try:
             shift = self.get_shift_by_id(shift_id)
-
-            if shift is None:
-                raise HTTPException(status_code=404, detail="Shift not found")
-
             self.db.delete(shift)
-
             self.db.commit()
 
         except Exception as e:
@@ -59,9 +49,6 @@ class ShiftsService:
     def update_shift_by_id(self, shift_id, updated_shift):
         try:
             shift = self.get_shift_by_id(shift_id)
-
-            if shift is None:
-                raise HTTPException(status_code=404, detail="Shift not found")
 
             # Only update fields in updated_shift that are not None
             for key, value in updated_shift.__dict__.items():
@@ -84,39 +71,32 @@ class ShiftsService:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
             timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
 
-            add_query = insert(Shift).values(start_time=timestamp,
-                                             user_id=user.id,
-                                             shift_type_id=shift_type_id)
+            shift = Shift(
+                start_time=timestamp,
+                user_id=user.id,
+                shift_type_id=shift_type_id
+            )
 
-            result = self.db.execute(add_query)
-            shift_id = result.lastrowid
+            self.db.add(shift)
             self.db.commit()
+            self.db.refresh(shift)
 
-            return ShiftRes(id=shift_id,
-                            start_time=timestamp,
-                            end_time=None,
-                            user_id=user.id,
-                            shift_type_id=shift_type_id,
-                            description=None)
+            return shift
 
         except Exception as e:
             self.db.rollback()
             raise e
 
     # Haetaan kirjautuneen työntekijän aloitetun työvuoron tiedot:
-    def get_started_shift(self, employee: User) -> ShiftRes | None:
+    def get_started_shift(self, employee: User):
         # HOX! Vaikka editori herjaa, hakuehtoa ei kannata muuttaa muotoon
         # "--Shift.end_time is None--", koska SQLAlchemy ei tunnista näin
         # muotoiltua hakua:
-        started_shift = self.db.query(Shift).filter(Shift.user_id == employee.id, Shift.end_time == None).first()
+        started_shift = self.db.query(Shift).filter(Shift.user_id == employee.id,
+                                                    Shift.end_time == None).first()
 
-        if started_shift is not None:
-            started_shift = ShiftRes(id=started_shift.id,
-                                     start_time=started_shift.start_time,
-                                     end_time=started_shift.end_time,
-                                     user_id=started_shift.user_id,
-                                     shift_type_id=started_shift.shift_type_id,
-                                     description=started_shift.description)
+        if started_shift is None:
+            raise NotFoundException(message="Started shift not found")
 
         return started_shift
 
@@ -170,8 +150,7 @@ class ShiftsService:
             self.db.rollback()
             raise e
 
-
-    def get_shifts_today_by_id(self, employee_id: int) -> list[ShiftRes]:
+    def get_shifts_today_by_id(self, employee_id: int) -> List[ShiftRes]:
         today = datetime.now(timezone.utc).date()
 
         # Tuodaan varalta myös edeltävän ja tulevan päivän data,
@@ -194,12 +173,10 @@ class ShiftsService:
         for shift in shift_list:
             shifts.append(ShiftRes.model_validate(shift))
 
-
         # Halutaan palauttaa myös potentiaalisesti tyhjä lista
         return shifts
 
-
-    def get_shifts_by_date_by_id(self, employee_id: int, date: datetime) -> list[ShiftRes]:
+    def get_shifts_by_date_by_id(self, employee_id: int, date: datetime) -> List[ShiftRes]:
         # Tänne haetaan päivää edeltävä ja päivää seuraavat datat, jotta vältytään vuorokauden vaihdoksessa
         # olevat ongelmat.
         date = date.date()
@@ -220,7 +197,6 @@ class ShiftsService:
 
         # Halutaan palauttaa myös potentiaalisesti tyhjä lista
         return shifts
-
 
     def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> List[ShiftRes]:
         # Haetaan 2kuukauden aikaväliltä kaikki työvuorot.
@@ -244,7 +220,7 @@ class ShiftsService:
 
 
 def get_service(db: DB):
-    return ShiftsService(db)
+    return ShiftsServiceSqlAlchemy(db)
 
 
-ShiftsServ = Annotated[ShiftsService, Depends(get_service)]
+ShiftsServ = Annotated[ShiftsServiceSqlAlchemy, Depends(get_service)]
