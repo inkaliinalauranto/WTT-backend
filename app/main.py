@@ -4,7 +4,7 @@ import dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from app.controllers import test, auth, shifts, users, roles, teams, organizations
-from app.custom_exceptions import authorization, notfound
+from app.custom_exceptions import authorization, notfound, taken
 from app.db_mysql import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
@@ -62,6 +62,10 @@ async def handle_credentials_exception(request, exception):
 @app.exception_handler(notfound.NotFoundException)
 async def handle_credentials_exception(request, exception):
     raise HTTPException(detail=str(exception), status_code=404)
+
+@app.exception_handler(taken.TakenException)
+async def handle_credentials_exception(request, exception):
+    raise HTTPException(detail=str(exception), status_code=409)
 
 
 # Websocket realtimeä varten
