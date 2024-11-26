@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from app.dtos.teams import Team
-from app.services.teams import TeamsServ
+from app.services.service_factories.teams_serv_factory import TeamsServ
+
 
 
 router = APIRouter(

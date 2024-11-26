@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from app.dtos.roles import Role
-from app.services.roles import RolesServ
+from app.services.service_factories.roles_serv_factory import RolesServ
+
 
 
 router = APIRouter(
