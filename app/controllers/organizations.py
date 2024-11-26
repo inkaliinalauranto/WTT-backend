@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-
 from app import models
 from app.dtos.organizations import Organization
 from app.services.service_factories.organizations_serv_factory import OrganizationsServ

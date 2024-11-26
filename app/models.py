@@ -1,4 +1,4 @@
-from sqlalchemy import TIMESTAMP, Column, Integer, String, ForeignKey
+from sqlalchemy import TIMESTAMP, Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base
 
 
@@ -31,6 +31,7 @@ class User(Base):
     deleted_at = Column(TIMESTAMP)
     role_id = Column(Integer, ForeignKey(column="roles.id", ondelete="CASCADE", onupdate="CASCADE"))
     team_id = Column(Integer, ForeignKey(column="teams.id", ondelete="CASCADE", onupdate="CASCADE"))
+    is_working = Column(Boolean, nullable=False, default=False)
 
 
 class Role(Base):

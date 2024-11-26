@@ -46,10 +46,6 @@ app.add_middleware(
 
 
 # Custom exceptions handlers
-@app.exception_handler(authorization.CredentialsException)
-async def handle_credentials_exception(request, exception):
-    raise HTTPException(detail=str(exception), status_code=401)
-
 @app.exception_handler(authorization.UnauthorizedAccessException)
 async def handle_credentials_exception(request, exception):
     raise HTTPException(detail=str(exception), status_code=401)
@@ -74,7 +70,7 @@ async def handle_credentials_exception(request, exception):
 # tai jopa /{id} kanssa.
 manager = ConnectionManager()
 
-@app.websocket("/ws")
+@app.websocket("/ws/{org_id}")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:

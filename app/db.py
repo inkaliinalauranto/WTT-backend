@@ -31,4 +31,3 @@ def get_db():
 
 
 DbMySql = Annotated[Session, Depends(get_db)]
-DB = Annotated[Session, Depends(get_db)]

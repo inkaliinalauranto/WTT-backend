@@ -8,7 +8,7 @@ from app.services.base_services.shifts_base_service import ShiftsBaseService
 
 
 class ShiftsServiceSqlAlchemy(ShiftsBaseService):
-    def get_shift_by_id(self, shift_id):
+    def get_shift_by_id(self, shift_id) -> Shift:
         shift = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
 
         if shift is None:
@@ -59,7 +59,7 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
             raise e
 
     # Leimataan id:n perusteella valitun käyttäjän työvuoro alkaneeksi:
-    def start_shift(self, user: User) -> ShiftRes:
+    def start_shift(self, user: User) -> Shift:
         try:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "confirmed").first()[0]
             timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
@@ -89,7 +89,7 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
         return started_shift
 
     # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
-    def end_shift(self, shift_id: int) -> ShiftRes:
+    def end_shift(self, shift_id: int) -> Shift:
         try:
             shift = self.get_shift_by_id(shift_id)
 
@@ -106,7 +106,7 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
 
     # Lisätään työntekijälle planned-tyyppiä oleva työvuoro. Lisääjän roolin
     # on oltava "manager".
-    def add_shift_by_user_id(self, employee_id: int, req_body: AddShiftReq) -> ShiftRes:
+    def add_shift_by_user_id(self, employee_id: int, req_body: AddShiftReq) -> Shift:
         try:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "planned").first()[0]
 
@@ -128,7 +128,8 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
             self.db.rollback()
             raise e
 
-    def get_shifts_today_by_id(self, employee_id: int) -> List[ShiftRes]:
+    # ei käytetä
+    def get_shifts_today_by_id(self, employee_id: int) -> List[Shift]:
         today = datetime.now(timezone.utc).date()
 
         # Tuodaan varalta myös edeltävän ja tulevan päivän data,
@@ -146,15 +147,11 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
                                   cast(Shift.start_time, Date) == tomorrow)
                               ).all())
 
-        # Täältä palautetaan vain data. Listat järjestellään muualla
-        shifts: list[ShiftRes] = []
-        for shift in shift_list:
-            shifts.append(ShiftRes.model_validate(shift))
-
         # Halutaan palauttaa myös potentiaalisesti tyhjä lista
-        return shifts
+        return shift_list
 
-    def get_shifts_by_date_by_id(self, employee_id: int, date: datetime) -> List[ShiftRes]:
+    # ei käytetä
+    def get_shifts_by_date_by_id(self, employee_id: int, date: datetime) -> List[Shift]:
         # Tänne haetaan päivää edeltävä ja päivää seuraavat datat, jotta vältytään vuorokauden vaihdoksessa
         # olevat ongelmat.
         date = date.date()
@@ -168,15 +165,10 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
                                   cast(Shift.start_time, Date) == day_after)
                               ).all())
 
-        # Täältä palautetaan vain data. Listat järjestellään muualla
-        shifts: list[ShiftRes] = []
-        for shift in shift_list:
-            shifts.append(ShiftRes.model_validate(shift))
-
         # Halutaan palauttaa myös potentiaalisesti tyhjä lista
-        return shifts
+        return shift_list
 
-    def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> List[ShiftRes]:
+    def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> List[Shift]:
         # Haetaan 2kuukauden aikaväliltä kaikki työvuorot.
         today = datetime.now(timezone.utc).date()
         month_from_date = today + timedelta(days=days)
@@ -188,10 +180,5 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
                               cast(Shift.start_time, Date).between(month_past_date, month_from_date)
                               ).all())
 
-        # Täältä palautetaan vain data. Listat järjestellään muualla
-        shifts = []
-        for shift in shift_list:
-            shifts.append(ShiftRes.model_validate(shift))
-
         # Halutaan palauttaa myös potentiaalisesti tyhjä lista
-        return shifts
+        return shift_list
