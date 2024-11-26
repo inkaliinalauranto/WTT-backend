@@ -8,6 +8,7 @@ class AuthUser(BaseModel):
     last_name: str
     role_id: int
     team_id: int
+    is_working: bool
 
     class Config:
         from_attributes = True

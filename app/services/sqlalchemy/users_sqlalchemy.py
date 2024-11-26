@@ -128,3 +128,15 @@ class UsersServiceSqlAlchemy(UsersBaseService):
         except Exception as e:
             self.db.rollback()
             raise e
+
+    # Yksinkertainen isworking setteri tietokantaan
+    def set_working_status_by_id(self, user, is_working):
+        try:
+            user.is_working = is_working
+            self.db.commit()
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+

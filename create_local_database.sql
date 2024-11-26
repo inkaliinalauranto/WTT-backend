@@ -130,3 +130,15 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+
+ALTER TABLE `users` ADD `is_working` BOOLEAN NOT NULL AFTER `team_id`;
+
+INSERT INTO organizations(name) VALUES("Stacked Oy");
+INSERT INTO teams(name, organization_id) VALUES("Frontend devs", 1);
+INSERT INTO teams(name, organization_id) VALUES("Backend devs", 1);
+INSERT INTO roles(name) VALUES("employee");
+INSERT INTO roles(name) VALUES("manager");
+INSERT INTO shift_types(type) VALUES("confirmed");
+INSERT INTO shift_types(type) VALUES("planned");
+
