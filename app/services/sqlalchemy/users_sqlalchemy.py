@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from app.custom_exceptions.authorization import UnauthorizedActionException
 from app.custom_exceptions.notfound import NotFoundException
 from app.custom_exceptions.taken import TakenException
-from app.models import User, Role
+from app.models import Team, User, Role
 from app.services.base_services.users_base_service import UsersBaseService
 from app.services.sqlalchemy.auth_sqlalchemy import pwd_context
 
@@ -44,6 +44,12 @@ class UsersServiceSqlAlchemy(UsersBaseService):
 
             user.role = role
 
+            # Löytyykö team tietokannasta
+            team = self.db.query(Team).filter(Team.id == user.team_id).first()
+
+            if team is None:
+                raise NotFoundException("Team not found")
+
             # Onko käyttäjänimi jo käytössä
             """
             user_in_db = self.db.execute(
@@ -55,6 +61,13 @@ class UsersServiceSqlAlchemy(UsersBaseService):
 
             if username is not None:
                 raise TakenException("Username is taken")
+            
+            # Onko sähköposti jo rekisteröity olemassa olevalle käyttäjälle
+
+            email = self.db.query(User.email).filter(User.email == user.email).first()
+
+            if email is not None:
+                raise TakenException("Email is already registered")
 
             # Häshätään salasana
             hashed_pw = pwd_context.hash(user.password)
