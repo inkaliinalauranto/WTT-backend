@@ -2,10 +2,9 @@ from datetime import datetime
 from typing import List
 from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
-from app.services.sqlalchemy.shifts_sqlalchemy import ShiftsServ
 from app.dependencies.logged_in_user import LoggedInUser
 from app.dependencies.require_user_role import RequireManager
-
+from app.services.service_factories.shifts_serv_factory import ShiftsServ
 
 router = APIRouter(
     prefix='/api/shifts',
@@ -53,16 +52,22 @@ def start_shift(logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
 
 
 # Haetaan kirjautuneen työntekijän aloitetun työvuoron tiedot:
-@router.get("/started/{employee_id}")
+@router.get("/started")
 def get_started_shift_by_employee_id(logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes | None:
-    return service.get_started_shift(logged_in_user)
+    started_shift = service.get_started_shift(logged_in_user)
+
+    if started_shift is None:
+        return None
+
+    return ShiftRes.model_validate(started_shift)
 
 
 # Leimaa valitun työvuoron päättyneeksi ja palauttaa leimatun vuoron tiedot.
 @router.patch("/end/{shift_id}")
 def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) -> ShiftRes:
-    ended_shift: ShiftRes = service.end_shift(shift_id, logged_in_user)
-    return ended_shift
+    if logged_in_user is not None:
+        ended_shift = service.end_shift(shift_id)
+        return ShiftRes.model_validate(ended_shift)
 
 
 # Lisää planned-tyyppisen työvuoron halutun työntekijän id:n perusteella, kun
@@ -71,7 +76,8 @@ def end_shift(shift_id: int, logged_in_user: LoggedInUser, service: ShiftsServ) 
 def add_shift(employee_id: int, service: ShiftsServ, manager: RequireManager, add_shift_req_body: AddShiftReq) -> ShiftRes:
     if manager is not None:
         """Request bodyssa Avain-arvo-parin description-avaimella voi poistaa, jos kuvausta ei haluta lisätä."""
-        return service.add_shift_by_user_id(employee_id, add_shift_req_body)
+        added_shift = service.add_shift_by_user_id(employee_id, add_shift_req_body)
+        return ShiftRes.model_validate(added_shift)
 
 
 @router.get("/today/{employee_id}")

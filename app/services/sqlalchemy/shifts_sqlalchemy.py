@@ -1,14 +1,14 @@
 from datetime import datetime, timezone, timedelta
-from typing import Annotated, List
-from fastapi import Depends, HTTPException
-from sqlalchemy import func, insert, cast, Date, or_
+from typing import List
+from sqlalchemy import func, cast, Date, or_
 from app.custom_exceptions.notfound import NotFoundException
 from app.db_mysql import DB
 from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
 from app.models import Shift, ShiftType, User
+from app.services.base_services.shifts_base_service import ShiftsBaseService
 
 
-class ShiftsServiceSqlAlchemy:
+class ShiftsServiceSqlAlchemy(ShiftsBaseService):
     def __init__(self, db):
         self.db = db
 
@@ -88,36 +88,24 @@ class ShiftsServiceSqlAlchemy:
             raise e
 
     # Haetaan kirjautuneen työntekijän aloitetun työvuoron tiedot:
-    def get_started_shift(self, employee: User):
+    def get_started_shift(self, employee: User) -> Shift | None:
         # HOX! Vaikka editori herjaa, hakuehtoa ei kannata muuttaa muotoon
         # "--Shift.end_time is None--", koska SQLAlchemy ei tunnista näin
         # muotoiltua hakua:
-        started_shift = self.db.query(Shift).filter(Shift.user_id == employee.id,
-                                                    Shift.end_time == None).first()
-
-        if started_shift is None:
-            raise NotFoundException(message="Started shift not found")
-
+        started_shift = self.db.query(Shift).filter(Shift.user_id == employee.id, Shift.end_time == None).first()
         return started_shift
 
     # Leimataan id:n perusteella valittu työvuoro päättyneeksi:
-    def end_shift(self, shift_id: int, user: User) -> ShiftRes:
+    def end_shift(self, shift_id: int) -> ShiftRes:
         try:
             shift = self.get_shift_by_id(shift_id)
-
-            if shift.user_id != user.id:
-                raise HTTPException(status_code=401, detail="Unauthorized action")
 
             shift.end_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
 
             self.db.commit()
+            self.db.refresh(shift)
 
-            return ShiftRes(id=shift.id,
-                            start_time=shift.start_time,
-                            end_time=shift.end_time,
-                            user_id=shift.user_id,
-                            shift_type_id=shift.shift_type_id,
-                            description=shift.description)
+            return shift
 
         except Exception as e:
             self.db.rollback()
@@ -129,22 +117,19 @@ class ShiftsServiceSqlAlchemy:
         try:
             shift_type_id = self.db.query(ShiftType.id).filter(ShiftType.type == "planned").first()[0]
 
-            add_query = insert(Shift).values(start_time=req_body.start_time,
-                                             end_time=req_body.end_time,
-                                             user_id=employee_id,
-                                             shift_type_id=shift_type_id,
-                                             description=req_body.description)
+            shift = Shift(
+                start_time=req_body.start_time,
+                end_time=req_body.end_time,
+                user_id=employee_id,
+                shift_type_id=shift_type_id,
+                description=req_body.description
+            )
 
-            result = self.db.execute(add_query)
-            shift_id = result.lastrowid
+            self.db.add(shift)
             self.db.commit()
+            self.db.refresh(shift)
 
-            return ShiftRes(id=shift_id,
-                            start_time=req_body.start_time,
-                            end_time=req_body.end_time,
-                            user_id=employee_id,
-                            shift_type_id=shift_type_id,
-                            description=req_body.description)
+            return shift
 
         except Exception as e:
             self.db.rollback()
@@ -221,6 +206,3 @@ class ShiftsServiceSqlAlchemy:
 
 def get_service(db: DB):
     return ShiftsServiceSqlAlchemy(db)
-
-
-ShiftsServ = Annotated[ShiftsServiceSqlAlchemy, Depends(get_service)]
