@@ -1,8 +1,9 @@
 import abc
-
 from app.models import User
+from app.services.base_services.base_service import BaseService
 
-class UsersBaseService(abc.ABC):
+
+class UsersBaseService(abc.ABC, BaseService):
     @abc.abstractmethod
     def get_by_id(self, user_id: int):
         raise NotImplemented()

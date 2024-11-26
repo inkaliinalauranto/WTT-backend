@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from app.controllers import auth, shifts, users, roles, teams, organizations
 from app.custom_exceptions import authorization, notfound, taken
-from app.db_mysql import engine
+from app.db import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
 from app.utils.ws_connection_manager import ConnectionManager

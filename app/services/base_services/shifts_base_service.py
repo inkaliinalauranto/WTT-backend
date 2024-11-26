@@ -1,12 +1,12 @@
 import abc
 from datetime import datetime
 from typing import List
-
 from app.dtos.shifts import ShiftTime, ShiftRes, AddShiftReq
 from app.models import User
+from app.services.base_services.base_service import BaseService
 
 
-class ShiftsBaseService(abc.ABC):
+class ShiftsBaseService(abc.ABC, BaseService):
     @abc.abstractmethod
     def get_shift_by_id(self, shift_id):
         raise NotImplementedError()
@@ -32,7 +32,7 @@ class ShiftsBaseService(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def end_shift(self, shift_id: int, user: User) -> ShiftRes:
+    def end_shift(self, shift_id: int) -> ShiftRes:
         raise NotImplementedError()
 
     @abc.abstractmethod

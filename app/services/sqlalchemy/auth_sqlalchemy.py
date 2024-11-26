@@ -3,7 +3,6 @@ from datetime import timedelta
 from passlib.context import CryptContext
 from app.custom_exceptions.authorization import CredentialsException
 from app.dtos.auth import LoginReq
-from app.db_mysql import DB
 from app.models import User
 from app.services.base_services.auth_base_service import AuthBaseService
 from app.utils.access_token import Token
@@ -14,10 +13,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthServiceSqlAlchemy(AuthBaseService):
-    def __init__(self, db: DB):
-        self.db = db
-
-
     # Autentisoi käyttäjän login tiedot ja palauttaa True, mikäli käyttäjätunnus ja salasana ovat valideja
     # Tätä metodia ei ole AuthBaseServicellä, vaan on tämän servicen oma apumetodi, joka voitaisiin suorittaa
     # myös suoraan loginissa.

@@ -2,8 +2,6 @@ from datetime import datetime
 from typing import List
 from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
-from app.models import Shift
-from app.services.sqlalchemy.shifts_sqlalchemy import ShiftsServ
 from app.dependencies.logged_in_user import LoggedInUser
 from app.dependencies.require_user_role import RequireManager
 from app.services.service_factories.shifts_serv_factory import ShiftsServ

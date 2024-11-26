@@ -8,14 +8,8 @@ from app.services.sqlalchemy.auth_sqlalchemy import pwd_context
 
 
 class UsersServiceSqlAlchemy(UsersBaseService):
-    def __init__(self, db):
-        self.db = db
-
     # Haetaan käyttäjä id:n perusteella:
     def get_by_id(self, user_id: int) -> User:
-        """"
-        SELECT * FROM users WHERE id = {user_id}
-        """
         user = (self.db.query(User).filter(User.id == user_id)).first()
         return user
 

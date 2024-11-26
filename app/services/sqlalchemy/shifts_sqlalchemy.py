@@ -2,20 +2,13 @@ from datetime import datetime, timezone, timedelta
 from typing import List
 from sqlalchemy import func, cast, Date, or_
 from app.custom_exceptions.notfound import NotFoundException
-from app.db_mysql import DB
 from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
 from app.models import Shift, ShiftType, User
 from app.services.base_services.shifts_base_service import ShiftsBaseService
 
 
 class ShiftsServiceSqlAlchemy(ShiftsBaseService):
-    def __init__(self, db):
-        self.db = db
-
     def get_shift_by_id(self, shift_id):
-        """
-        SELECT * FROM shifts WHERE shift_id = {shift_id}
-        """
         shift = (self.db.query(Shift).filter(Shift.id == shift_id)).first()
 
         if shift is None:
@@ -135,8 +128,7 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
             self.db.rollback()
             raise e
 
-    
-    def get_shifts_today_by_id(self, employee_id: int) -> List[Shift]:
+    def get_shifts_today_by_id(self, employee_id: int) -> List[ShiftRes]:
         today = datetime.now(timezone.utc).date()
 
         # Tuodaan varalta myös edeltävän ja tulevan päivän data,
@@ -154,9 +146,15 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
                                   cast(Shift.start_time, Date) == tomorrow)
                               ).all())
 
-        return shift_list
+        # Täältä palautetaan vain data. Listat järjestellään muualla
+        shifts: list[ShiftRes] = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
 
-    def get_shifts_by_date_by_id(self, employee_id: int, date: datetime) -> List[Shift]:
+        # Halutaan palauttaa myös potentiaalisesti tyhjä lista
+        return shifts
+
+    def get_shifts_by_date_by_id(self, employee_id: int, date: datetime) -> List[ShiftRes]:
         # Tänne haetaan päivää edeltävä ja päivää seuraavat datat, jotta vältytään vuorokauden vaihdoksessa
         # olevat ongelmat.
         date = date.date()
@@ -170,9 +168,15 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
                                   cast(Shift.start_time, Date) == day_after)
                               ).all())
 
-        return shift_list
+        # Täältä palautetaan vain data. Listat järjestellään muualla
+        shifts: list[ShiftRes] = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
 
-    def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> List[Shift]:
+        # Halutaan palauttaa myös potentiaalisesti tyhjä lista
+        return shifts
+
+    def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> List[ShiftRes]:
         # Haetaan 2kuukauden aikaväliltä kaikki työvuorot.
         today = datetime.now(timezone.utc).date()
         month_from_date = today + timedelta(days=days)
@@ -183,9 +187,11 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
                       .filter(Shift.user_id == employee_id,
                               cast(Shift.start_time, Date).between(month_past_date, month_from_date)
                               ).all())
-        
-        return shift_list
 
+        # Täältä palautetaan vain data. Listat järjestellään muualla
+        shifts = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
 
-def get_service(db: DB):
-    return ShiftsServiceSqlAlchemy(db)
+        # Halutaan palauttaa myös potentiaalisesti tyhjä lista
+        return shifts

@@ -4,9 +4,6 @@ from app.services.base_services.roles_base_service import RolesBaseService
 
 
 class RolesServiceSqlalchemy(RolesBaseService):
-    def __init__(self, db):
-        self.db = db
-
     # Haetaan käyttäjä id:n perusteella:
     def get_by_id(self, role_id) -> Role:
         role = self.db.query(Role).filter(Role.id == role_id).first()
