@@ -1,7 +1,7 @@
 import uuid
 from datetime import timedelta
 from passlib.context import CryptContext
-from app.custom_exceptions.authorization import CredentialsException
+from app.custom_exceptions.authorization import UnauthorizedActionException
 from app.dtos.auth import LoginReq
 from app.models import User
 from app.services.base_services.auth_base_service import AuthBaseService
@@ -21,10 +21,10 @@ class AuthServiceSqlAlchemy(AuthBaseService):
         user = self.db.query(User).filter(User.username == credentials.username).first()
 
         if not user:
-            raise CredentialsException("Could not validate credentials")
+            raise UnauthorizedActionException("Could not validate credentials")
 
         if not pwd_context.verify(credentials.password, user.password):
-            raise CredentialsException("Could not validate credentials")
+            raise UnauthorizedActionException("Could not validate credentials")
 
 
     def login(self, credentials: LoginReq, token: Token) -> User and str:
