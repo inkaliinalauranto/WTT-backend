@@ -1,10 +1,10 @@
-from os import access
 from typing import Annotated
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from app import models
-from app.services.users import UsersServ
+from app.custom_exceptions.authorization import UnauthorizedAccessException
+from app.services.service_factories.users_serv_factory import UsersServ
 from app.utils.access_token import Token
 
 
@@ -21,22 +21,22 @@ def get_user_by_access_jti(token: Token, service: UsersServ, req: Request, auth:
     if not access_token:
         access_token = auth
         if not auth:
-            raise HTTPException(status_code=401, detail="Unauthorized access")
+            raise UnauthorizedAccessException("Unauthorized: Cannot find credentials")
 
     try:
         # Tarkistetaan onko token meidän luoma
         payload = token.verify(access_token)
         if payload['type'] != 'access':
-            raise HTTPException(status_code=401, detail="Unauthorized access")
+            raise UnauthorizedAccessException("Unauthorized access")
 
         # Tarkistetaan onko käyttäjä kirjautunut sisään
         user = service.get_user_by_access_jti(payload['sub'])
         if user is None:
-            raise HTTPException(status_code=401, detail="Unauthorized access")
+            raise UnauthorizedAccessException("Unauthorized access")
 
     # Token ei ole validi
     except JWTError:
-        raise HTTPException(status_code=401, detail="Unauthorized access")
+        raise UnauthorizedAccessException("Unauthorized access")
 
     # models.User
     return user

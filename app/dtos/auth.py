@@ -22,6 +22,9 @@ class LoginRes(BaseModel):
     access_token: str
     auth_user: AuthUser
 
+    class Config:
+        from_attributes = True
+
 
 class RegisterReq(BaseModel):
     username: str

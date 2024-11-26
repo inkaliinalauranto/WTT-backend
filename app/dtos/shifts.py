@@ -22,6 +22,9 @@ class ShiftTime(BaseModel):
     end_time: datetime | None
     description: str | None
 
+    class Config:
+        from_attributes = True
+
 
 class UpdateReq(BaseModel):
     start_time: datetime
