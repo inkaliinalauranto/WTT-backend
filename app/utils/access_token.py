@@ -3,12 +3,20 @@ from os import environ
 from typing import Annotated
 from fastapi.params import Depends
 from jose import jwt
+import abc
 
 
-class AccessToken:
+class BaseToken(abc.ABC):
+    def create(self, data: dict):
+        raise NotImplemented()
+
+    def verify(self, access_token):
+        raise NotImplemented()
+
+
+class SymmetricToken:
     def __init__(self, secret_key):
         self.secret_key = secret_key
-
 
     # Luodaan access token, jota käytetään autentisontiin. Tokenille voidaan määritellä vanhentumisaika
     # Muista createssa antaa dataksi esim. {"sub": access_jti, "type": "access", "exp": timedelta(days=30)}
@@ -21,17 +29,16 @@ class AccessToken:
 
         return token
 
-
-    def verify(self, token):
+    def verify(self, access_token):
         payload = jwt.decode(
-            token, self.secret_key, algorithms=['HS512'], audience="WorktimeTracker", issuer="WorktimeTracker"
+            access_token, self.secret_key, algorithms=['HS512'], audience="WorktimeTracker", issuer="WorktimeTracker"
         )
         return payload
 
 
 # Injectoidaan tässä salainen avain tokenien käsittelyyn
 def get_token():
-    return AccessToken(environ.get("SECRET_KEY"))
+    return SymmetricToken(environ.get("SECRET_KEY"))
 
 
-Token = Annotated[AccessToken, Depends(get_token)]
+Token = Annotated[BaseToken, Depends(get_token)]

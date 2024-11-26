@@ -14,7 +14,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthServiceSqlAlchemy(AuthBaseService):
-    def __init__(self, db: DB):
+    def __init__(self, db: DBMySql):
         self.db = db
 
 
