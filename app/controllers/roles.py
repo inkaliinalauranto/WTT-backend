@@ -1,6 +1,9 @@
 from fastapi import APIRouter
+
+from app import models
 from app.dtos.roles import Role
-from app.services.roles import RolesServ
+from app.services.service_factories.roles_serv_factory import RolesServ
+
 
 
 router = APIRouter(
@@ -11,5 +14,5 @@ router = APIRouter(
 
 @router.get("/{role_id}")
 async def get_role_by_id(role_id: int, service: RolesServ) -> Role:
-    role = service.get_by_id(role_id)
-    return role
+    role: models.Role = service.get_by_id(role_id)
+    return Role.model_validate(role)

@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from app import models
 from app.custom_exceptions.authorization import UnauthorizedAccessException
-from app.services.users import UsersServ
+from app.services.service_factories.users_serv_factory import UsersServ
 from app.utils.access_token import Token
 
 

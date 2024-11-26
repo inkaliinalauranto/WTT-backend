@@ -1,8 +1,8 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException
 from app.models import Role, User
-from app.services.roles import RolesServ
 from app.dependencies.logged_in_user import LoggedInUser
+from app.services.service_factories.roles_serv_factory import RolesServ
 
 
 def require_manager(service: RolesServ, logged_in_user: LoggedInUser) -> User:

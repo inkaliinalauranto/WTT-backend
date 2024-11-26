@@ -1,13 +1,13 @@
 from datetime import datetime, timezone
-from fastapi import Depends, HTTPException
-from typing import Annotated
-from app.db_mysql import DB
-from app.dtos.auth import AuthUser
+from app.custom_exceptions.authorization import UnauthorizedActionException
+from app.custom_exceptions.notfound import NotFoundException
+from app.custom_exceptions.taken import TakenException
 from app.models import User, Role
+from app.services.base_services.users_base_service import UsersBaseService
 from app.services.sqlalchemy.auth_sqlalchemy import pwd_context
 
 
-class UsersService:
+class UsersServiceSqlAlchemy(UsersBaseService):
     def __init__(self, db):
         self.db = db
 
@@ -20,14 +20,10 @@ class UsersService:
         return user
 
 
-    def get_all_by_team_id(self, team_id:int) -> list[AuthUser]:
+    def get_all_by_team_id(self, team_id:int) -> list[User]:
         employee_role = self.db.query(Role).filter(Role.name == "employee").first()
-        users = self.db.query(User).filter(User.team_id == team_id, User.role_id == employee_role.id).all()
 
-        users_list: list[AuthUser] = []
-        for user in users:
-            users_list.append(AuthUser.model_validate(user))
-
+        users_list: list[User] = self.db.query(User).filter(User.team_id == team_id, User.role_id == employee_role.id).all()
         return users_list
 
 
@@ -44,7 +40,7 @@ class UsersService:
             role = self.db.query(Role).filter(Role.id == user.role_id).first()
 
             if role is None:
-                raise HTTPException(status_code=404, detail="Role not found")
+                raise NotFoundException("Role not found")
 
             user.role = role
 
@@ -58,7 +54,7 @@ class UsersService:
             username = self.db.query(User.username).filter(User.username == user.username).first()
 
             if username is not None:
-                raise HTTPException(status_code=409, detail="Username is taken")
+                raise TakenException("Username is taken")
 
             # Häshätään salasana
             hashed_pw = pwd_context.hash(user.password)
@@ -112,11 +108,11 @@ class UsersService:
 
             if user is None:
                 # Jos käyttäjää ei ole, palautetaan 404
-                raise HTTPException(status_code=404, detail="User not found")
+                raise NotFoundException("User not found")
 
             if manager.role_id == user.role_id:
                 # Jos käyttäjän rooli on sama kuin poistettavan rooli (manager yrittää poistaa toisen managerin), tämä on kiellettyä.
-                raise HTTPException(status_code=403, detail="Unauthorized action")
+                raise UnauthorizedActionException("Unauthorized action")
             
             # Jos käyttäjä löytyy, poistetaan se
             self.db.delete(user)
@@ -125,14 +121,3 @@ class UsersService:
         except Exception as e:
             self.db.rollback()
             raise e
-
-
-# Initialisoidaan UsersRepository tietokantayhteyden kanssa
-def get_service(db: DB):
-    return UsersService(db)
-
-
-# Tämän toimintaperiaate on sama kuin databasen luonnissa.
-# Alla olevassa annotated funktiossa injektoidaan tietokantayhteys UsersServicelle.
-# UsersService injektoidaan nyt välittämällä tämä muuttuja parametrinä controllerin functioon -> (service: UsersServ).
-UsersServ = Annotated[UsersService, Depends(get_service)]
