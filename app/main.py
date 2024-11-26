@@ -70,7 +70,7 @@ async def handle_credentials_exception(request, exception):
 # tai jopa /{id} kanssa.
 manager = ConnectionManager()
 
-@app.websocket("/ws")
+@app.websocket("/ws/{org_id}")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
