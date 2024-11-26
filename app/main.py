@@ -8,7 +8,7 @@ from app.custom_exceptions import authorization, notfound, taken
 from app.db_mysql import engine
 from app.models import Base
 from fastapi.middleware.cors import CORSMiddleware
-from app.websocket import ConnectionManager
+from app.utils.ws_connection_manager import ConnectionManager
 
 
 dotenv.load_dotenv()
