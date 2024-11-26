@@ -3,7 +3,7 @@ from typing import Annotated
 import dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from app.controllers import test, auth, shifts, users, roles, teams, organizations
+from app.controllers import auth, shifts, users, roles, teams, organizations
 from app.custom_exceptions import authorization, notfound, taken
 from app.db_mysql import engine
 from app.models import Base
@@ -21,7 +21,6 @@ if os.getenv("CREATE_DB_TABLES") == "true":
 
 # Create routers
 app = FastAPI()
-app.include_router(test.router)
 app.include_router(auth.router)
 app.include_router(shifts.router)
 app.include_router(users.router)
