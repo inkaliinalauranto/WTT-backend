@@ -10,6 +10,9 @@ class ShiftRes(BaseModel):
     shift_type_id: int
     description: str | None
 
+    class Config:
+        from_attributes = True
+
 
 class ShiftTime(BaseModel):
     id: int
@@ -17,6 +20,10 @@ class ShiftTime(BaseModel):
     shift_type: str
     start_time: datetime
     end_time: datetime | None
+    description: str | None
+
+    class Config:
+        from_attributes = True
 
 
 class UpdateReq(BaseModel):
