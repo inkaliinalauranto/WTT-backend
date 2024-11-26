@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import List
 from fastapi import APIRouter
 from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
+from app.models import Shift
+from app.services.sqlalchemy.shifts_sqlalchemy import ShiftsServ
 from app.dependencies.logged_in_user import LoggedInUser
 from app.dependencies.require_user_role import RequireManager
 from app.services.service_factories.shifts_serv_factory import ShiftsServ
@@ -83,17 +85,29 @@ def add_shift(employee_id: int, service: ShiftsServ, manager: RequireManager, ad
 @router.get("/today/{employee_id}")
 def get_shifts_today_by_employee_id(employee_id: int, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
     if user is not None:
-        return service.get_shifts_today_by_id(employee_id)
+        shift_list = service.get_shifts_today_by_id(employee_id)
+        shifts = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
+        return shifts
 
 
 @router.get("/{date}/{employee_id}")
 def get_shifts_today_by_employee_id(employee_id: int, date: datetime, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
     if user is not None:
-        return service.get_shifts_by_date_by_id(employee_id, date)
+        shift_list = service.get_shifts_by_date_by_id(employee_id, date)
+        shifts = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
+        return shifts
 
 
 # Haetaan kaikki työvuorot +- days päivää from today päivästä lähtien.
 @router.get("/today/{employee_id}/tolerance/{days}")
 def get_shifts_with_days_tolerance_from_today_by_employee_id(employee_id: int, days: int, service: ShiftsServ, user:LoggedInUser) -> list[ShiftRes]:
     if user is not None:
-        return service.get_shifts_with_days_tolerance_from_today_by_id(employee_id, days)
+        shift_list = service.get_shifts_with_days_tolerance_from_today_by_id(employee_id, days)
+        shifts = []
+        for shift in shift_list:
+            shifts.append(ShiftRes.model_validate(shift))
+        return shifts
