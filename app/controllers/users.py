@@ -21,7 +21,7 @@ def delete_user_by_id(user_id, service: UsersServ, manager: RequireManager):
 async def get_all_employees_by_manager_team_id(service: UsersServ, manager: RequireManager) -> list[AuthUser]:
     if manager is not None:
         users = service.get_all_by_team_id(manager.team_id)
-        users_list: List[AuthUser]
+        users_list: List[AuthUser] = []
         for user in users:
-                users_list.append(AuthUser.model_validate(user))
+            users_list.append(AuthUser.model_validate(user))
         return users_list
