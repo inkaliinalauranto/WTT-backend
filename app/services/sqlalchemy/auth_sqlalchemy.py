@@ -5,7 +5,7 @@ from app.custom_exceptions.authorization import CredentialsException
 from app.dtos.auth import LoginReq
 from app.db_mysql import DB
 from app.models import User
-from app.services.auth_base_service import AuthBaseService
+from app.services.base_services.auth_base_service import AuthBaseService
 from app.utils.access_token import Token
 
 

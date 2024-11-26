@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from typing import Annotated
+from typing import Annotated, List
 from fastapi import Depends, HTTPException
 from sqlalchemy import func, insert, cast, Date, or_
 from app.db_mysql import DB
@@ -222,7 +222,7 @@ class ShiftsService:
         return shifts
 
 
-    def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> list[ShiftRes]:
+    def get_shifts_with_days_tolerance_from_today_by_id(self, employee_id: int, days: int) -> List[ShiftRes]:
         # Haetaan 2kuukauden aikaväliltä kaikki työvuorot.
         today = datetime.now(timezone.utc).date()
         month_from_date = today + timedelta(days=days)
@@ -235,7 +235,7 @@ class ShiftsService:
                               ).all())
 
         # Täältä palautetaan vain data. Listat järjestellään muualla
-        shifts: list[ShiftRes] = []
+        shifts = []
         for shift in shift_list:
             shifts.append(ShiftRes.model_validate(shift))
 

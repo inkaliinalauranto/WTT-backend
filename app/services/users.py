@@ -4,7 +4,7 @@ from typing import Annotated
 from app.db_mysql import DB
 from app.dtos.auth import AuthUser
 from app.models import User, Role
-from app.services.auth_sqlalchemy import pwd_context
+from app.services.sqlalchemy.auth_sqlalchemy import pwd_context
 
 
 class UsersService:

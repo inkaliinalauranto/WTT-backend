@@ -2,8 +2,8 @@ from typing import Annotated
 import dotenv
 from fastapi import Depends
 from app.db_mysql import DB
-from app.services.auth_base_service import AuthBaseService
-from app.services.auth_sqlalchemy import AuthServiceSqlAlchemy
+from app.services.base_services.auth_base_service import AuthBaseService
+from app.services.sqlalchemy.auth_sqlalchemy import AuthServiceSqlAlchemy
 import os
 
 

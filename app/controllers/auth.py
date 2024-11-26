@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from app import models
 from app.dependencies.logged_in_user import LoggedInUser
-from app.services.auth_serv_factory import AuthServ
+from app.services.service_factories.auth_serv_factory import AuthServ
 from app.utils.access_token import Token
 from fastapi import APIRouter, Depends, Response
 from app.dtos.auth import LoginRes, AuthUser, LoginReq, RegisterReq
