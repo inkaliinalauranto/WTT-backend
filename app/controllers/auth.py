@@ -6,7 +6,7 @@ from app.services.service_factories.auth_serv_factory import AuthServ
 from app.utils.access_token import Token
 from fastapi import APIRouter, Depends, Response
 from app.dtos.auth import LoginRes, AuthUser, LoginReq, RegisterReq
-from app.services.users import UsersServ
+from app.services.service_factories.users_serv_factory import UsersServ
 
 
 # MVC mallin mukaisesti tänne tulee vain requestin vastaanotto ja controlleri palauttaa responsen.

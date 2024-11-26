@@ -1,13 +1,12 @@
 from datetime import datetime, timezone
-from fastapi import Depends, HTTPException
-from typing import Annotated
-from app.db_mysql import DB
+from fastapi import HTTPException
 from app.dtos.auth import AuthUser
 from app.models import User, Role
+from app.services.base_services.users_base_service import UsersBaseService
 from app.services.sqlalchemy.auth_sqlalchemy import pwd_context
 
 
-class UsersService:
+class UsersServiceSqlAlchemy(UsersBaseService):
     def __init__(self, db):
         self.db = db
 
@@ -125,14 +124,3 @@ class UsersService:
         except Exception as e:
             self.db.rollback()
             raise e
-
-
-# Initialisoidaan UsersRepository tietokantayhteyden kanssa
-def get_service(db: DB):
-    return UsersService(db)
-
-
-# Tämän toimintaperiaate on sama kuin databasen luonnissa.
-# Alla olevassa annotated funktiossa injektoidaan tietokantayhteys UsersServicelle.
-# UsersService injektoidaan nyt välittämällä tämä muuttuja parametrinä controllerin functioon -> (service: UsersServ).
-UsersServ = Annotated[UsersService, Depends(get_service)]
