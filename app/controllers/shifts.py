@@ -37,9 +37,10 @@ def delete_shift_by_id(shift_id, service: ShiftsServ, manager: RequireManager):
 
 
 @router.patch("/{shift_id}")
-def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ) -> ShiftRes:
-    shift = service.update_shift_by_id(shift_id, updated_shift)
-    return ShiftRes.model_validate(shift)
+def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ, manager: RequireManager) -> ShiftRes:
+    if manager:
+        shift = service.update_shift_by_id(shift_id, updated_shift)
+        return ShiftRes.model_validate(shift)
 
 
 # Leimaa kirjautuneen työntekijän työvuoron alkaneeksi ja palauttaa leimatun
