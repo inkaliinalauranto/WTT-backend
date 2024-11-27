@@ -31,8 +31,9 @@ def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: Shifts
 
 
 @router.delete("/{shift_id}")
-def delete_shift_by_id(shift_id, service: ShiftsServ):
-    service.delete_shift_by_id(shift_id)
+def delete_shift_by_id(shift_id, service: ShiftsServ, manager: RequireManager):
+    if manager:
+        service.delete_shift_by_id(shift_id)
 
 
 @router.patch("/{shift_id}")
