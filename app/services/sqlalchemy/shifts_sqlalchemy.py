@@ -37,12 +37,12 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
             self.db.rollback()
             raise e
 
-    def update_shift_by_id(self, shift_id, updated_shift):
+    def update_shift_by_id(self, shift_id, updated_shift_req):
         try:
             shift = self.get_shift_by_id(shift_id)
 
             # Only update fields in updated_shift that are not None
-            for key, value in updated_shift.__dict__.items():
+            for key, value in updated_shift_req.__dict__.items():
                 if value is not None:
                     setattr(shift, key, value)
 

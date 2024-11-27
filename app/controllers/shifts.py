@@ -37,9 +37,9 @@ def delete_shift_by_id(shift_id, service: ShiftsServ, manager: RequireManager):
 
 
 @router.patch("/{shift_id}")
-def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ, manager: RequireManager) -> ShiftRes:
+def update_shift_by_id(shift_id, updated_shift_req: UpdateReq, service: ShiftsServ, manager: RequireManager) -> ShiftRes:
     if manager:
-        shift = service.update_shift_by_id(shift_id, updated_shift)
+        shift = service.update_shift_by_id(shift_id, updated_shift_req)
         return ShiftRes.model_validate(shift)
 
 
