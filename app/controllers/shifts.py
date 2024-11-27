@@ -16,20 +16,18 @@ router = APIRouter(
 # shift_type-parametri. Ei käytetä LoggedInUser-mallia, koska
 # myös esimiehen on pystyttävä tarkastelemaan alaisensa työvuoroja:
 @router.get("/week/{employee_id}/{shift_type}")
-def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ) -> List[ShiftTime]:
-    shift_times = service.get_shifts_by_employee_id(employee_id, shift_type)
+def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ, logged_in_user: LoggedInUser) -> List[ShiftTime]:
+    if logged_in_user:
+        shift_times = service.get_shifts_by_employee_id(employee_id, shift_type)
 
-    weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        shift_dicts_list = [ShiftTime(id=shift.id,
+                                      shift_type=shift.type,
+                                      start_time=shift.start_time,
+                                      end_time=shift.end_time,
+                                      description=shift.description)
+                            for shift in shift_times]
 
-    shift_dicts_list = [ShiftTime(id=shift.id,
-                                  weekday=weekdays[shift.weekday],
-                                  shift_type=shift.type,
-                                  start_time=shift.start_time,
-                                  end_time=shift.end_time,
-                                  description=shift.description)
-                        for shift in shift_times]
-
-    return shift_dicts_list
+        return shift_dicts_list
 
 
 @router.delete("/{shift_id}")

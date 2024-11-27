@@ -16,14 +16,10 @@ class ShiftRes(BaseModel):
 
 class ShiftTime(BaseModel):
     id: int
-    weekday: str
     shift_type: str
     start_time: datetime
     end_time: datetime | None
     description: str | None
-
-    class Config:
-        from_attributes = True
 
 
 class UpdateReq(BaseModel):

@@ -19,13 +19,11 @@ class ShiftsServiceSqlAlchemy(ShiftsBaseService):
     # Haetaan id:n perusteella työntekijän kuluvan viikon työvuorot, jonka
     # tyypin (planned vai confirmed) shift_type-parametri määrittelee:
     def get_shifts_by_employee_id(self, employee_id: int, shift_type: str) -> List[ShiftTime] | None:
-        shift_times = (
-            self.db.query(Shift.id, func.weekday(Shift.start_time).label("weekday"), ShiftType.type, Shift.start_time,
-                          Shift.end_time, Shift.description)
-            .join(ShiftType, Shift.shift_type_id == ShiftType.id)
-            .join(User, Shift.user_id == User.id)
-            .filter(User.id == employee_id,
-                    ShiftType.type == shift_type)).all()
+        shift_times = (self.db.query(Shift.id, ShiftType.type, Shift.start_time, Shift.end_time, Shift.description)
+                       .join(ShiftType, Shift.shift_type_id == ShiftType.id)
+                       .join(User, Shift.user_id == User.id)
+                       .filter(User.id == employee_id,
+                               ShiftType.type == shift_type)).all()
 
         return shift_times
 
