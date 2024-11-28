@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -33,5 +34,5 @@ class RegisterReq(BaseModel):
     first_name: str
     last_name: str
     email: str
-    role_id: int
+    role_id: Optional[int]
     team_id: int

@@ -1,8 +1,8 @@
 from datetime import datetime, timezone, timedelta
 from typing import List
-from sqlalchemy import func, cast, Date, or_
+from sqlalchemy import cast, Date, or_
 from app.custom_exceptions.notfound import NotFoundException
-from app.dtos.shifts import ShiftTime, AddShiftReq, ShiftRes
+from app.dtos.shifts import ShiftTime, AddShiftReq
 from app.models import Shift, ShiftType, User
 from app.services.base_services.shifts_base_service import ShiftsBaseService
 
