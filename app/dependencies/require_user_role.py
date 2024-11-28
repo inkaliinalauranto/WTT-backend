@@ -6,6 +6,16 @@ from app.dependencies.logged_in_user import LoggedInUser
 from app.services.service_factories.roles_serv_factory import RolesServ
 
 
+def require_admin(service: RolesServ, logged_in_user: LoggedInUser) -> User:
+    user = logged_in_user
+    role: Role = service.get_by_id(user.role_id)
+
+    if role.name != "admin":
+        raise UnauthorizedActionException("Forbidden action")
+
+    return user
+
+
 def require_manager(service: RolesServ, logged_in_user: LoggedInUser) -> User:
     user = logged_in_user
     role: Role = service.get_by_id(user.role_id)
@@ -26,5 +36,6 @@ def require_employee(service: RolesServ, logged_in_user: LoggedInUser) -> User:
     return user
 
 
+RequireAdmin = Annotated[User, Depends(require_admin)]
 RequireManager = Annotated[User, Depends(require_manager)]
 RequireEmployee = Annotated[User, Depends(require_employee)]

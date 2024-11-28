@@ -1,5 +1,5 @@
 import abc
-from app.models import User
+from app.models import User, Role, Team
 from app.services.base_services.base_service import BaseService
 
 
@@ -13,7 +13,7 @@ class UsersBaseService(abc.ABC, BaseService):
         raise NotImplemented()
     
     @abc.abstractmethod
-    def create(self, user: User):
+    def create(self, user: User, creator_role_id: int):
         raise NotImplemented()
     
     @abc.abstractmethod
@@ -22,4 +22,12 @@ class UsersBaseService(abc.ABC, BaseService):
     
     @abc.abstractmethod
     def delete_user_by_id(self, user_id: int, manager:User):
+        raise NotImplemented()
+
+    @abc.abstractmethod
+    def set_working_status_by_id(self, user, is_working):
+        raise NotImplemented()
+
+    @abc.abstractmethod
+    def create_admin(self, admin_role: Role, admin_team: Team):
         raise NotImplemented()
