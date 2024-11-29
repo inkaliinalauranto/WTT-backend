@@ -16,31 +16,31 @@ router = APIRouter(
 # shift_type-parametri. Ei käytetä LoggedInUser-mallia, koska
 # myös esimiehen on pystyttävä tarkastelemaan alaisensa työvuoroja:
 @router.get("/week/{employee_id}/{shift_type}")
-def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ) -> List[ShiftTime]:
-    shift_times = service.get_shifts_by_employee_id(employee_id, shift_type)
+def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ, logged_in_user: LoggedInUser) -> List[ShiftTime]:
+    if logged_in_user:
+        shift_times = service.get_shifts_by_employee_id(employee_id, shift_type)
 
-    weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        shift_dicts_list = [ShiftTime(id=shift.id,
+                                      shift_type=shift.type,
+                                      start_time=shift.start_time,
+                                      end_time=shift.end_time,
+                                      description=shift.description)
+                            for shift in shift_times]
 
-    shift_dicts_list = [ShiftTime(id=shift.id,
-                                  weekday=weekdays[shift.weekday],
-                                  shift_type=shift.type,
-                                  start_time=shift.start_time,
-                                  end_time=shift.end_time,
-                                  description=shift.description)
-                        for shift in shift_times]
-
-    return shift_dicts_list
+        return shift_dicts_list
 
 
 @router.delete("/{shift_id}")
-def delete_shift_by_id(shift_id, service: ShiftsServ):
-    service.delete_shift_by_id(shift_id)
+def delete_shift_by_id(shift_id, service: ShiftsServ, manager: RequireManager):
+    if manager:
+        service.delete_shift_by_id(shift_id)
 
 
 @router.patch("/{shift_id}")
-def update_shift_by_id(shift_id, updated_shift: UpdateReq, service: ShiftsServ) -> ShiftRes:
-    shift = service.update_shift_by_id(shift_id, updated_shift)
-    return ShiftRes.model_validate(shift)
+def update_shift_by_id(shift_id, updated_shift_req: UpdateReq, service: ShiftsServ, manager: RequireManager) -> ShiftRes:
+    if manager:
+        shift = service.update_shift_by_id(shift_id, updated_shift_req)
+        return ShiftRes.model_validate(shift)
 
 
 # Leimaa kirjautuneen työntekijän työvuoron alkaneeksi ja palauttaa leimatun

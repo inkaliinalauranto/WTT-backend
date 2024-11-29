@@ -1,4 +1,6 @@
+import os
 from datetime import datetime, timezone
+import dotenv
 from app.custom_exceptions.authorization import UnauthorizedActionException
 from app.custom_exceptions.notfound import NotFoundException
 from app.custom_exceptions.taken import TakenException
@@ -6,6 +8,8 @@ from app.models import Team, User, Role
 from app.services.base_services.users_base_service import UsersBaseService
 from app.services.sqlalchemy.auth_sqlalchemy import pwd_context
 
+
+dotenv.load_dotenv()
 
 class UsersServiceSqlAlchemy(UsersBaseService):
     # Haetaan käyttäjä id:n perusteella:
@@ -21,45 +25,55 @@ class UsersServiceSqlAlchemy(UsersBaseService):
         return users_list
 
 
-    def create(self, user: User):
+    def create_admin(self, admin_role: Role, admin_team: Team):
         try:
-            # Löytyykö role tietokannasta
-            """
-            role_id = self.db.execute(
-                text("SELECT id FROM roles WHERE id = :role_id"),
-                {"role_id": user.role_id}
-            ).mappings().first()
-            """
-            # .query(mitä palautetaan).filter(minkä perusteella).mitkärivit()
-            role = self.db.query(Role).filter(Role.id == user.role_id).first()
+            if not admin_role:
+                raise NotFoundException("Admin role not found. Create admin role using roles service")
 
-            if role is None:
-                raise NotFoundException("Role not found")
+            if not admin_team:
+                raise NotFoundException("Admin team not found. Create admin team using teams service")
 
-            user.role = role
+            self.db.add(
+                User(
+                    username="admin",
+                    password=pwd_context.hash(os.getenv("ADMIN_PW")),
+                    role_id=admin_role.id,
+                    first_name="Admin",
+                    last_name="user",
+                    email="admin@wtt.com",
+                    created_at=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8'),
+                    team_id=admin_team.id
+                )
+            )
+            self.db.commit()
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+
+    # Create other users
+    def create(self, user: User, creator_role_id: int):
+        try:
+            # Luotavan käyttäjän rooli määritellään controllerissa, ja niiden olemassaolo tarkistetaan muualla
+
+            # Käyttäjä ei voi luoda toista käyttäjää samoilla oikeuksilla.
+            # Tällä estetään myös se, että admin ei yritä luoda toista adminia tätä kautta
+            if creator_role_id == user.role_id:
+                raise UnauthorizedActionException("Forbidden action")
 
             # Löytyykö team tietokannasta
             team = self.db.query(Team).filter(Team.id == user.team_id).first()
-
             if team is None:
                 raise NotFoundException("Team not found")
 
             # Onko käyttäjänimi jo käytössä
-            """
-            user_in_db = self.db.execute(
-                text("SELECT username FROM users WHERE username = :username"),
-                {"username": user.username}
-            ).mappings().first()
-            """
             username = self.db.query(User.username).filter(User.username == user.username).first()
-
             if username is not None:
                 raise TakenException("Username is taken")
             
             # Onko sähköposti jo rekisteröity olemassa olevalle käyttäjälle
-
             email = self.db.query(User.email).filter(User.email == user.email).first()
-
             if email is not None:
                 raise TakenException("Email is already registered")
 
@@ -70,23 +84,6 @@ class UsersServiceSqlAlchemy(UsersBaseService):
             # Luodaan timestamp, joka on UTC 0 ja muotoiltu ja muunnettu mysqliin sopivaksi.
             user.created_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S').encode('utf-8')
 
-            """
-            # Voidaan suorittaa insert ja commitoida se.
-            # Tallennetaan kyselystä palautunut id User modeliin.
-            user.id = self.db.execute(
-               text("INSERT INTO users(username, password, first_name, last_name, email, role_id, team_id, created_at) "
-                    "VALUES(:username, :password, :first_name, :last_name, email, :role_id, :team_id, NOW())"),
-               {
-                   "username": user.username,
-                   "password": hashed_pw,
-                   "first_name": user.first_name,
-                   "last_name": user.last_name,
-                   "email": user.email,
-                   "role_id": user.role_id,
-                   "team_id": user.team_id
-               }
-            ).lastrowid
-            """
             # Lisätään käyttäjä, joka on models.User instanssi.
             self.db.add(user)
             self.db.commit()
@@ -99,12 +96,6 @@ class UsersServiceSqlAlchemy(UsersBaseService):
     def get_user_by_access_jti(self, access_jti):
         # Haetaan user access_tokenin perusteella.
         user = self.db.query(User).filter(User.access_jti == access_jti).first()
-        """
-              user = self.db.execute(
-                  text("SELECT * FROM users WHERE access_jti = :sub"),
-                  {"sub": access_jti}
-              ).mappings().first()
-              """
         return user
     
 
