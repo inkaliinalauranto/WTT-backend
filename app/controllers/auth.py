@@ -50,6 +50,8 @@ async def create_new_employee(
         user.role_id = employee_role.id
         users_service.create(user, creator_role_id=manager.role_id)
 
+        # model_validate on peräisin Chatgpt keskustelusta. Etsin näppärää tapaa mäpätä Base instanssista vajaa
+        # Basemodel instanssi aikaisemmin tekemäni apufunktion tilalle.
         return AuthUser.model_validate(user)
 
 

@@ -29,6 +29,12 @@ def get_user_by_access_jti(token: Token, service: UsersServ, req: Request, auth:
         if payload['type'] != 'access':
             raise UnauthorizedAccessException("Unauthorized access")
 
+        if payload['iss'] != 'WorktimeTracker':
+            raise UnauthorizedAccessException("Unauthorized access")
+
+        if payload['aud'] != 'WorktimeTracker':
+            raise UnauthorizedAccessException("Unauthorized access")
+
         # Tarkistetaan onko käyttäjä kirjautunut sisään
         user = service.get_user_by_access_jti(payload['sub'])
         if user is None:
