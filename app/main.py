@@ -33,6 +33,8 @@ app.include_router(organizations.router)
 origins = [
     "http://localhost:5173"  # Frontendin origin
     "https://localhost:5173" # Frontendin suojattu yhteys origin
+    "http://worktime-tracker-stacked-wtt.2.rahtiapp.fi:5173"
+    "https://worktime-tracker-stacked-wtt.2.rahtiapp.fi:5173"
     # Kaikki muut originit
 ]
 # Lisätään originit sallituiden listalle
