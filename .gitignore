@@ -202,3 +202,5 @@ fabric.properties
 
 # Testaus:
 .pytest_cache/
+*.db
+test-results.xml

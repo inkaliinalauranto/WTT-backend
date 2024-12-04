@@ -19,10 +19,16 @@ venv\Scripts\activate
 ```
 python -m pip install -r requirements.txt
 ```
-6. Asenna paikallisesti pytest:
+6. Asenna paikallisesti pytest ja siihen liittyvä raporttityökalu:
 ```
 python -m pip install pytest
+python -m pip install pytest-cov
 ```
+- Jos haluat ajaa testit, syötä terminaaliin seuraava komentoketju:
+```
+pytest tests.py --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+```
+- Tämän jälkeen projektikansion juureen ilmestyy htmlcov-kansio, jonka sisällä olevaa index.html-tiedostoa klikkaamalla pääsee tarkastelemaan testiraportteja. 
 7. Buildaa docker:
 ```
 docker compose up --build // Vaihtoehtoisesti käynnistä refreshaava ympäristö docker compose -f compose-dev.yaml up 
