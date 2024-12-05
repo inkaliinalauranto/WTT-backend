@@ -38,7 +38,7 @@ CREATE_DB_TABLES="true"
 Mikäli käytät paikallista tietokantaa, käytä create_local_database.sql-MySQL-tietokantadumppia, joka sisältää myös tarvittavat insertit.
 
 ## Testit
-- Vaihda .env-tiedoston TEST-attribuutti arvoon True, ja tallenna muutokset.
+- Lisää .env-tiedoston TEST-attribuutti ja sille arvo True, ja tallenna muutokset.
 - Nyt testit voidaan ajaa paikallisesti syöttämällä terminaaliin seuraava komentoketju:
 ```
 pytest tests.py --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
