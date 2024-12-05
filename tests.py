@@ -5,7 +5,7 @@ from app.db import session, engine
 from app.models import Base
 from app.services.sqlalchemy.organizations_sqlalchemy import OrganizationsServiceSqlAlchemy
 
-# Luodaan tietokantataulut testejä varten. Vaikutteita tähän
+# Luodaan tietokantataulut testejä varten. Vaikutteita tähän on otettu
 # seuraavasta lähteestä:
 # https://coderpad.io/blog/development/a-guide-to-database-unit-testing-with-pytest-and-sqlalchemy/
 Base.metadata.create_all(engine)
