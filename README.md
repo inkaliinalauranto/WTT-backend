@@ -19,18 +19,19 @@ venv\Scripts\activate
 ```
 python -m pip install -r requirements.txt
 ```
-6. Asenna paikallisesti pytest:
+6. Buildaa docker:
 ```
-python -m pip install pytest
+docker compose up --build 
 ```
-7. Buildaa docker:
+Vaihtoehtoisesti käynnistä refreshaava ympäristö
 ```
-docker compose up --build // Vaihtoehtoisesti käynnistä refreshaava ympäristö docker compose -f compose-dev.yaml up 
+docker compose -f compose-dev.yaml up 
 ```
-8. FastApi, PhpMyadmin ja db pyörivät nyt localhostissa asettamissasi porteissa
+7. FastApi, PhpMyadmin ja db pyörivät nyt localhostissa asettamissasi porteissa
 
-9. Jos haluat luoda taulukot tietokantaan, lisää allaoleva enviin, ja buildaa docker uudestaan.
+8. Jos haluat luoda taulukot tietokantaan, lisää alla oleva atribuutti enviin, ja buildaa docker uudestaan.
 ```
 CREATE_DB_TABLES="true"
 ```
-10. Suorita sql_prepopulate insertit
+9. Kun taulut on luotu dockerin tietokantaan, suorita prepopulate insertit phpmyadminissa (löytyy sql/sql_prepopulate.txt). 
+Mikäli käytät paikallista tietokantaa, käytä create_local_database.sql mysql tietokanta dumppia, joka sisältää myös tarvittavat insertit.
