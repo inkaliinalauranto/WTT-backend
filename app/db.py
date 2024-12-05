@@ -12,7 +12,7 @@ DB_PASSWORD = os.getenv("MYSQL_PASSWORD")
 DB_HOST = os.getenv("MYSQL_DATABASE")
 DB_NAME = os.getenv("MYSQL_DATABASE_NAME")
 
-if os.getenv("TEST"):
+if os.getenv("TEST") == "True":
     DATABASE_URL = os.getenv("TEST_URL")
 else:
     DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
