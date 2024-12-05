@@ -37,6 +37,9 @@ CREATE_DB_TABLES="true"
 10. Kun taulut on luotu Dockerin tietokantaan, suorita prepopulate insertit phpmyadminissa (löytyy sql/sql_prepopulate.txt). 
 Mikäli käytät paikallista tietokantaa, käytä create_local_database.sql-MySQL-tietokantadumppia, joka sisältää myös tarvittavat insertit.
 
+## Rajapinnan käyttö
+Suurinta osaa rajapintametodeista voi käyttää ainoastaan sisäänkirjautuneena käyttäjänä. Eri roolin käyttäjiä voi luoda ainoastaan admin-käyttäjä. Admin-käyttäjän voit luoda tekemällä FastAPI-dokumentaation kautta pyynnön /api/auth/register/admin-POST-routeen. Sen jälkeen voit kirjautua sisään /api/auth/login-POST-routen kautta. Kirjoita request bodyn käyttäjänimeksi "admin" ja salasanaksi .env-tiedostossa ADMIN_PW-attribuutille antamasi arvo. Tämän jälkeen käyttäjien luonti sekä sen myötä myös muiden API-pyyntöjen toteuttaminen onnistuvat.
+
 ## Testit
 - Lisää .env-tiedoston TEST-attribuutti ja sille arvo True, ja tallenna muutokset.
 - Nyt testit voidaan ajaa paikallisesti syöttämällä terminaaliin seuraava komentoketju:
