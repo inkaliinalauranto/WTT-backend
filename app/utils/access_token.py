@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from datetime import datetime, timezone
 from os import environ
 from typing import Annotated
@@ -7,14 +8,16 @@ import abc
 
 
 class BaseToken(abc.ABC):
+    @abstractmethod
     def create(self, data: dict):
         raise NotImplemented()
 
+    @abstractmethod
     def verify(self, access_token):
         raise NotImplemented()
 
 
-class SymmetricToken:
+class SymmetricToken(BaseToken):
     def __init__(self, secret_key):
         self.secret_key = secret_key
 

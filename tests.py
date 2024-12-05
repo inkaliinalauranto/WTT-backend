@@ -1,39 +1,72 @@
-from unittest.mock import patch
 import pytest
+from app.custom_exceptions.notfound import NotFoundException
+from app.custom_exceptions.taken import TakenException
+from app.db import session, engine
+from app.models import Base
+from app.services.sqlalchemy.organizations_sqlalchemy import OrganizationsServiceSqlAlchemy
 
-"""Testien luomisessa on hyödynnetty ChatGPT:tä"""
-
-
-@pytest.fixture(autouse=True)
-def mock_env_vars(monkeypatch):
-    # Simuloidaan tietokannan muodostavan URL:n ympäristömuuttujia
-    # arvoilla, jotka asetetaan setenv-metodikutsun toisiksi parametreiksi:
-    monkeypatch.setenv("MYSQL_USER", "testuser")
-    monkeypatch.setenv("MYSQL_PASSWORD", "testpassword")
-    monkeypatch.setenv("MYSQL_DATABASE", "localhost")
-    monkeypatch.setenv("MYSQL_DATABASE_NAME", "testdb")
-    yield
+# Luodaan tietokantataulut testejä varten. Vaikutteita tähän on otettu
+# seuraavasta lähteestä:
+# https://coderpad.io/blog/development/a-guide-to-database-unit-testing-with-pytest-and-sqlalchemy/
+Base.metadata.create_all(engine)
 
 
-@pytest.fixture(autouse=True)
-def mock_dotenv_load(monkeypatch):
-    with patch("dotenv.load_dotenv") as mock_load_dotenv:
-        # Varmistetaan, ettei load_dotenv lataa .env-tiedoston oikeita arvoja:
-        mock_load_dotenv.return_value = None
-        yield mock_load_dotenv
+# Luodaan testeille tarvittavat kontekstit pytestin
+# fixture-riippuvuus-injektion avulla seuraavaa lähdettä mukaillen:
+# https://pytest-with-eric.com/database-testing/pytest-sql-database-testing/#Testing-Database-Operations
+@pytest.fixture
+def organization_instance(scope="session"):
+    # Luodaan db-instanssi kutsumalla db-tiedostossa määriteltyä sessionia,
+    # koska OrganizationsServin käyttö aiheutti virheen. Virheen yhteydessä
+    # on konsultoitu ChatGPT:n ilmaisversiota, joka ehdotti sessionin käyttöä
+    # manuaalisesti, koska testiympäristö ei pysty ratkaisemaan
+    # OrganizationsServiceen liittyvää annotoitua luonnetta/riippuvuuksia.
+    db_session = session()
+    organization_serv = OrganizationsServiceSqlAlchemy(db_session)
+
+    yield organization_serv
+
+    db_session.close()
 
 
-def test_env_variables():
-    from app.db import DB_USER, DB_PASSWORD, DB_HOST, DB_NAME
-    # Testataan, että ympäristömuuttujat on asetettu oikein:
-    assert DB_USER == "testuser"
-    assert DB_PASSWORD == "testpassword"
-    assert DB_HOST == "localhost"
-    assert DB_NAME == "testdb"
+# Kun testit tehdään tämän funktion yieldaamaa instanssia hyödyntämällä,
+# organisaatiotaulun tietueet siivotaan/tyhjennetään sekä ennen testin ajoa
+# että sen jälkeen seuraavaa lähdettä mukaillen:
+# https://pytest-with-eric.com/database-testing/pytest-sql-database-testing/#Testing-Database-Operations
+@pytest.fixture
+def emptied_organization_instance(organization_instance, scope="session"):
+    organization_instance.delete_all()
+    yield organization_instance
+    organization_instance.delete_all()
 
 
-def test_database_url():
-    from app.db import DATABASE_URL
-    # Testataan, että tietokantayhteyden URL on oikein muodostettu:
-    expected_url = "mysql+pymysql://testuser:testpassword@localhost/testdb"
-    assert DATABASE_URL == expected_url
+# Tehdään testi, joka testaa onnistunutta tietueen luomista ja luodun
+# tietueen hakemista kuvaavaa skenaariota seuraavaa lähdettä mukaillen:
+# https://pytest-with-eric.com/database-testing/pytest-sql-database-testing/#Testing-Database-Operations
+def test_create_and_read_org(emptied_organization_instance):
+    emptied_organization_instance.create_org_if_not_exist("Test organization")
+    organization = emptied_organization_instance.get_by_id(1)
+    assert organization.id == 1
+    assert organization.name == "Test organization"
+
+
+# Tehdään seuraavaa lähdettä mukaillen testi, jonka tarkoitus on testata
+# tietueen luomisen epäonnistumista, eli luodaan kaksi kertaa organisaatio
+# samalla nimellä:
+# https://medium.com/@ramanish1992/pytest-assertions-and-test-discovery-python-24b4bcb468eb
+def test_create_same_username(emptied_organization_instance):
+    emptied_organization_instance.create_org_if_not_exist("Test organization")
+    with pytest.raises(TakenException) as exc_info:
+        emptied_organization_instance.create_org_if_not_exist("Test organization")
+    assert str(exc_info.value) == "Organization already exists"
+
+
+# Tehdään seuraavaa lähdettä mukaillen testi, jonka tarkoitus on testata
+# tietueen hakemisen epäonnistumista, eli haetaan luotu tietue sellaisella
+# id:llä, jollaista tietueella ei pitäisi olla:
+# https://medium.com/@ramanish1992/pytest-assertions-and-test-discovery-python-24b4bcb468eb
+def test_read_org_with_0_id(emptied_organization_instance):
+    emptied_organization_instance.create_org_if_not_exist("Test organization")
+    with pytest.raises(NotFoundException) as exc_info:
+        emptied_organization_instance.get_by_id(0)
+    assert str(exc_info.value) == "Organization not found"

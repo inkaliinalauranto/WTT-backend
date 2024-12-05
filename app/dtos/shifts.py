@@ -22,7 +22,7 @@ class ShiftTime(BaseModel):
     description: str | None
 
 
-class UpdateReq(BaseModel):
+class UpdateShiftReq(BaseModel):
     start_time: datetime
     end_time: datetime
     description: str

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 from fastapi import APIRouter
-from app.dtos.shifts import UpdateReq, ShiftTime, AddShiftReq, ShiftRes
+from app.dtos.shifts import UpdateShiftReq, ShiftTime, AddShiftReq, ShiftRes
 from app.dependencies.logged_in_user import LoggedInUser
 from app.dependencies.require_user_role import RequireManager
 from app.services.service_factories.shifts_serv_factory import ShiftsServ
@@ -13,8 +13,7 @@ router = APIRouter(
 
 
 # Palauttaa valitun työntekijän työvuorot, joiden tyypin määrittää
-# shift_type-parametri. Ei käytetä LoggedInUser-mallia, koska
-# myös esimiehen on pystyttävä tarkastelemaan alaisensa työvuoroja:
+# shift_type-parametri.
 @router.get("/week/{employee_id}/{shift_type}")
 def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: ShiftsServ, logged_in_user: LoggedInUser) -> List[ShiftTime]:
     if logged_in_user:
@@ -30,14 +29,17 @@ def get_all_shifts_by_user_id(employee_id: int, shift_type: str, service: Shifts
         return shift_dicts_list
 
 
+# Manageriroolin käyttäjä pystyy poistamaan vuoron id:n perusteella:
 @router.delete("/{shift_id}")
 def delete_shift_by_id(shift_id, service: ShiftsServ, manager: RequireManager):
     if manager:
         service.delete_shift_by_id(shift_id)
 
 
+# Manageriroolin käyttäjä pystyy muokkaamaan vuoron aloitus- ja lopetusaikaa
+# sekä kuvausta id:n perusteella:
 @router.patch("/{shift_id}")
-def update_shift_by_id(shift_id, updated_shift_req: UpdateReq, service: ShiftsServ, manager: RequireManager) -> ShiftRes:
+def update_shift_by_id(shift_id, updated_shift_req: UpdateShiftReq, service: ShiftsServ, manager: RequireManager) -> ShiftRes:
     if manager:
         shift = service.update_shift_by_id(shift_id, updated_shift_req)
         return ShiftRes.model_validate(shift)
