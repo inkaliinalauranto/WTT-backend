@@ -17,6 +17,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
+      TEST: True
       TEST_URL: sqlite:///db.db?check_same_thread=False
 
     steps:
