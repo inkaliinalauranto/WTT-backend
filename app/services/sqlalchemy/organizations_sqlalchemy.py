@@ -11,7 +11,6 @@ class OrganizationsServiceSqlAlchemy(OrganizationsBaseService):
             raise NotFoundException("Organization not found")
         return organization
 
-
     def create_org_if_not_exist(self, org_name: str) -> Organization:
         try:
             org = self.db.query(Organization).filter(Organization.name == org_name).first()
@@ -27,3 +26,10 @@ class OrganizationsServiceSqlAlchemy(OrganizationsBaseService):
         except Exception as e:
             self.db.rollback()
             raise e
+
+    def delete_all(self):
+        organizations = self.db.query(Organization).all()
+        for organization in organizations:
+            self.db.delete(organization)
+
+        self.db.commit()

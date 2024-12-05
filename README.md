@@ -35,3 +35,9 @@ CREATE_DB_TABLES="true"
 ```
 9. Kun taulut on luotu dockerin tietokantaan, suorita prepopulate insertit phpmyadminissa (löytyy sql/sql_prepopulate.txt). 
 Mikäli käytät paikallista tietokantaa, käytä create_local_database.sql mysql tietokanta dumppia, joka sisältää myös tarvittavat insertit.
+
+- Jos haluat ajaa testit, syötä terminaaliin seuraava komentoketju:
+```
+pytest tests.py --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+```
+- Tämän jälkeen projektikansion juureen ilmestyy htmlcov-kansio, jonka sisällä olevaa index.html-tiedostoa klikkaamalla pääsee tarkastelemaan testiraportteja. 

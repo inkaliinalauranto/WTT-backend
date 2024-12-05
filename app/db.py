@@ -5,21 +5,20 @@ from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-
 dotenv.load_dotenv()
 
-DB_USER = os.getenv("MYSQL_USER")
-DB_PASSWORD = os.getenv("MYSQL_PASSWORD")
-# Jotta toimi (Inka-Liinalla), oli MY_SQL_DATABASE-ympäristömuuttujan arvo
-# vaihdettava "db":ksi:
-# DB_HOST = "db"
-DB_HOST = os.getenv("MYSQL_DATABASE")
-DB_NAME = os.getenv("MYSQL_DATABASE_NAME")
+# DB_USER = os.getenv("MYSQL_USER")
+# DB_PASSWORD = os.getenv("MYSQL_PASSWORD")
+# DB_HOST = os.getenv("MYSQL_DATABASE")
+# DB_NAME = os.getenv("MYSQL_DATABASE_NAME")
+#
+# database_url = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+database_url = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(database_url)
 session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db():
     db = None
