@@ -41,12 +41,13 @@ Mikäli käytät paikallista tietokantaa, käytä create_local_database.sql-MySQ
 Suurinta osaa rajapintametodeista voi käyttää ainoastaan sisäänkirjautuneena käyttäjänä. Eri roolin käyttäjiä voi luoda ainoastaan admin-käyttäjä. Admin-käyttäjän voit luoda tekemällä FastAPI-dokumentaation kautta pyynnön /api/auth/register/admin-POST-routeen. Sen jälkeen voit kirjautua sisään /api/auth/login-POST-routen kautta. Kirjoita request bodyn käyttäjänimeksi "admin" ja salasanaksi .env-tiedostossa ADMIN_PW-attribuutille antamasi arvo. Tämän jälkeen käyttäjien luonti sekä sen myötä myös muiden API-pyyntöjen toteuttaminen onnistuvat.
 
 ## Testit
-- Lisää .env-tiedoston TEST-attribuutti ja sille arvo True, ja tallenna muutokset.
+- Muuta .env-tiedoston TEST-ympäristömuuttuja arvoon "on": `TEST=on`. Tallenna muutokset.
 - Nyt testit voidaan ajaa paikallisesti syöttämällä terminaaliin seuraava komentoketju:
 ```
 pytest tests.py --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
 ```
 - Tämän jälkeen projektikansion juureen ilmestyy htmlcov-kansio, jonka sisällä olevaa index.html-tiedostoa klikkaamalla pääsee tarkastelemaan testiraportteja.
+- Jos tämän jälkeen buildaat backendin Dockerissa uudestaan tai jatkat backendin käyttöä paikallisesti Uvicornilla, **muista vaihtaa TEST-ympäristömuuttujan arvo takaisin tai poistaa tämä ympäristömuuttuja kokonaan**.
 
 ## Rahti
 

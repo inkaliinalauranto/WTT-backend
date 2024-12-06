@@ -12,7 +12,10 @@ DB_PASSWORD = os.getenv("MYSQL_PASSWORD")
 DB_HOST = os.getenv("MYSQL_DATABASE")
 DB_NAME = os.getenv("MYSQL_DATABASE_NAME")
 
-if os.getenv("TEST"):
+# Kun TEST-ympäristömuuttujan arvo on "on", muodostetaan yhteys
+# SQLite-testitietokantaan. Muussa tapauksessa yhteys muodostetaan backendin
+# varsinaiseen tietokantaan.
+if os.getenv("TEST") == "on":
     DATABASE_URL = os.getenv("TEST_URL")
 else:
     DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
